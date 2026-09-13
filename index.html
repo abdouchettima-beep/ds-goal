@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DS Goal</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      color: #222;
+    }
+
+    header {
+      background: #087f23;
+      color: white;
+      padding: 18px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    header p {
+      margin: 5px 0 0;
+    }
+
+    .container {
+      padding: 15px;
+    }
+
+    .status {
+      text-align: center;
+      padding: 12px;
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .match {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .league {
+      font-size: 13px;
+      color: #777;
+      margin-bottom: 10px;
+    }
+
+    .teams {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+    }
+
+    .score {
+      font-size: 22px;
+      color: #087f23;
+    }
+
+    .time {
+      text-align: center;
+      margin-top: 10px;
+      color: #d00;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>⚽ DS Goal</h1>
+  <p>Live Football Scores</p>
+</header>
+
+<div class="container">
+
+  <div class="status" id="status">
+    Loading live matches...
+  </div>
+
+  <div id="matches"></div>
+
+</div>
+
+<script>
+
+const BACKEND_URL =
+  "https://football-livescore-backend.vercel.app/api/football";
+
+async function loadMatches() {
+
+  const status = document.getElementById("status");
+  const matches = document.getElementById("matches");
+
+  try {
+
+    const response = await fetch(BACKEND_URL);
+    const data = await response.json();
+
+    if (!data.response || data.response.length === 0) {
+      status.textContent = "No live matches right now.";
+      matches.innerHTML = "";
+      return;
+    }
+
+    status.textContent =
+      data.response.length + " live match(es)";
+
+    matches.innerHTML = "";
+
+    data.response.forEach(match => {
+
+      const home = match.teams.home.name;
+      const away = match.teams.away.name;
+
+      const homeScore = match.goals.home ?? 0;
+      const awayScore = match.goals.away ?? 0;
+
+      const league = match.league.name;
+
+      const elapsed =
+        match.fixture.status.elapsed
+          ? match.fixture.status.elapsed + "'"
+          : "";
+
+      matches.innerHTML += `
+        <div class="match">
+
+          <div class="league">
+            ${league}
+          </div>
+
+          <div class="teams">
+
+            <span>${home}</span>
+
+            <span class="score">
+              ${homeScore} - ${awayScore}
+            </span>
+
+            <span>${away}</span>
+
+          </div>
+
+          <div class="time">
+            ${elapsed}
+          </div>
+
+        </div>
+      `;
+
+    });
+
+  } catch (error) {
+
+    status.textContent =
+      "Unable to load live scores.";
+
+    console.log(error);
+
+  }
+
+}
+
+loadMatches();
+
+setInterval(loadMatches, 60000);
+
+</script>
+
+</body>
+</html>
