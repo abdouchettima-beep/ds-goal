@@ -119,28 +119,61 @@ main {
 
 /* ================= DATE BAR ================= */
 
+.date-wrapper {
+  margin: 8px -14px 14px;
+  overflow-x: auto;
+  white-space: nowrap;
+  border-bottom: 1px solid #eeeeee;
+  scrollbar-width: none;
+}
+
+.date-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
 .date-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 8px 0 14px;
+  display: inline-flex;
+  align-items: stretch;
+  gap: 4px;
+  padding: 4px 10px 0;
+  min-width: 100%;
 }
 
-.date-arrow {
-  width: 40px;
-  height: 40px;
+.date-item {
   border: none;
-  border-radius: 50%;
-  background: #eeeeee;
+  background: white;
   color: #071a3d;
-  font-size: 25px;
-  font-weight: bold;
+  min-width: 72px;
+  padding: 9px 7px 11px;
   cursor: pointer;
+  font-weight: bold;
+  font-size: 12px;
+  border-bottom: 3px solid transparent;
 }
 
-.today {
-  font-size: 21px;
-  font-weight: bold;
+.date-item .day {
+  display: block;
+  font-size: 11px;
+  color: #777777;
+  margin-bottom: 3px;
+}
+
+.date-item .date-number {
+  display: block;
+  font-size: 14px;
+}
+
+.date-item.today-date {
+  color: #071a3d;
+}
+
+.date-item.active {
+  color: #071a3d;
+  border-bottom-color: #d4af37;
+}
+
+.date-item.active .day {
+  color: #071a3d;
 }
 
 /* ================= STATUS TABS ================= */
@@ -150,6 +183,11 @@ main {
   gap: 8px;
   margin-bottom: 14px;
   overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tab {
@@ -274,6 +312,14 @@ main {
   margin-bottom: 7px;
 }
 
+.match-status.live {
+  color: #d00000;
+}
+
+.match-status.finished {
+  color: #777777;
+}
+
 .team-row {
   display: flex;
   align-items: center;
@@ -301,6 +347,15 @@ main {
 .score {
   font-size: 16px;
   font-weight: bold;
+  min-width: 25px;
+  text-align: center;
+}
+
+.match-meta {
+  text-align: center;
+  font-size: 10px;
+  color: #888888;
+  margin-top: 4px;
 }
 
 /* ================= EMPTY ================= */
@@ -488,6 +543,10 @@ main {
     font-size: 25px;
   }
 
+  .date-item {
+    min-width: 68px;
+  }
+
 }
 
 </style>
@@ -532,20 +591,10 @@ main {
 
 <section id="matchesPage" class="page active">
 
-  <div class="date-bar">
+  <!-- DATE BAR -->
 
-    <button class="date-arrow" onclick="previousDay()">
-      ‹
-    </button>
-
-    <div class="today">
-      Today
-    </div>
-
-    <button class="date-arrow" onclick="nextDay()">
-      ›
-    </button>
-
+  <div class="date-wrapper" id="dateWrapper">
+    <div class="date-bar" id="dateBar"></div>
   </div>
 
 
@@ -706,6 +755,157 @@ let allMatches = [];
 
 let allLeagues = [];
 
+let selectedDate = new Date();
+
+
+/* ================= DATE HELPERS ================= */
+
+function formatDateForAPI(date) {
+
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(date.getMonth() + 1)
+      .padStart(2, "0");
+
+  const day =
+    String(date.getDate())
+      .padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+
+function getDayName(date) {
+
+  return date.toLocaleDateString(
+    "en-US",
+    {
+      weekday: "short"
+    }
+  ).toUpperCase();
+
+}
+
+
+function isToday(date) {
+
+  const today = new Date();
+
+  return (
+    date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate()
+  );
+
+}
+
+
+/* ================= DATE BAR ================= */
+
+function createDateBar() {
+
+  const dateBar =
+    document.getElementById("dateBar");
+
+  dateBar.innerHTML = "";
+
+  const today =
+    new Date();
+
+  /*
+    Show today plus the next 6 days.
+  */
+
+  for (let i = 0; i < 7; i++) {
+
+    const date =
+      new Date(today);
+
+    date.setDate(
+      today.getDate() + i
+    );
+
+    const button =
+      document.createElement("button");
+
+    button.className =
+      "date-item";
+
+    if (isToday(date)) {
+
+      button.classList.add(
+        "today-date"
+      );
+
+    }
+
+    if (
+      formatDateForAPI(date) ===
+      formatDateForAPI(selectedDate)
+    ) {
+
+      button.classList.add(
+        "active"
+      );
+
+    }
+
+    const dayName =
+      isToday(date)
+      ? "TODAY"
+      : getDayName(date);
+
+    const dateNumber =
+      date.getDate();
+
+    button.innerHTML = `
+      <span class="day">
+        ${dayName}
+      </span>
+
+      <span class="date-number">
+        ${dateNumber}
+      </span>
+    `;
+
+    button.onclick =
+      function() {
+
+        selectedDate =
+          new Date(date);
+
+        createDateBar();
+
+        currentTab = "all";
+
+        document
+          .querySelectorAll(".tab")
+          .forEach(btn =>
+            btn.classList.remove("active")
+          );
+
+        document
+          .querySelector(".tab")
+          .classList.add("active");
+
+        selectedLeague = "all";
+
+        document
+          .getElementById("leagueSelect")
+          .value = "all";
+
+        loadMatches();
+
+      };
+
+    dateBar.appendChild(button);
+
+  }
+
+}
+
 
 /* ================= PAGE NAVIGATION ================= */
 
@@ -714,8 +914,13 @@ function showPage(pageId, button) {
   document
     .querySelectorAll(".page")
     .forEach(page => {
-      page.classList.remove("active");
+
+      page.classList.remove(
+        "active"
+      );
+
     });
+
 
   document
     .getElementById(pageId)
@@ -725,8 +930,13 @@ function showPage(pageId, button) {
   document
     .querySelectorAll(".nav-button")
     .forEach(btn => {
-      btn.classList.remove("active");
+
+      btn.classList.remove(
+        "active"
+      );
+
     });
+
 
   button.classList.add("active");
 
@@ -747,9 +957,12 @@ function showPage(pageId, button) {
 
 function changeTab(tab, button) {
 
-  currentTab = tab;
+  currentTab =
+    tab;
 
-  selectedLeague = "all";
+  selectedLeague =
+    "all";
+
 
   document
     .getElementById("leagueSelect")
@@ -759,13 +972,22 @@ function changeTab(tab, button) {
   document
     .querySelectorAll(".tab")
     .forEach(btn => {
-      btn.classList.remove("active");
+
+      btn.classList.remove(
+        "active"
+      );
+
     });
 
-  button.classList.add("active");
+
+  button.classList.add(
+    "active"
+  );
 
 
-  loadMatches();
+  displayMatches(
+    allMatches
+  );
 
 }
 
@@ -775,133 +997,65 @@ function changeTab(tab, button) {
 async function loadMatches() {
 
   const status =
-    document.getElementById("matchStatus");
+    document.getElementById(
+      "matchStatus"
+    );
 
   const container =
-    document.getElementById("matchesContainer");
+    document.getElementById(
+      "matchesContainer"
+    );
 
 
   status.textContent =
     "Loading matches...";
 
-  container.innerHTML = "";
+  container.innerHTML =
+    `<div class="loading">
+       Loading fixtures...
+     </div>`;
 
 
   try {
 
-    let matches = [];
+    const date =
+      formatDateForAPI(
+        selectedDate
+      );
 
 
-    /* ALL */
-
-    if (currentTab === "all") {
-
-      const results =
-        await Promise.allSettled([
-
-          fetch(BACKEND + "/api/football")
-            .then(r => r.json()),
-
-          fetch(BACKEND + "/api/upcoming")
-            .then(r => r.json())
-
-        ]);
+    const url =
+      BACKEND +
+      "/api/fixtures?date=" +
+      encodeURIComponent(date);
 
 
-      results.forEach(result => {
+    const response =
+      await fetch(url);
 
-        if (
-          result.status === "fulfilled" &&
-          result.value.response
-        ) {
 
-          matches =
-            matches.concat(
-              result.value.response
-            );
+    if (!response.ok) {
 
-        }
-
-      });
+      throw new Error(
+        "Server returned " +
+        response.status
+      );
 
     }
 
 
-    /* LIVE */
-
-    if (currentTab === "live") {
-
-      const response =
-        await fetch(
-          BACKEND + "/api/football"
-        );
-
-      const data =
-        await response.json();
-
-      matches =
-        data.response || [];
-
-    }
-
-
-    /* UPCOMING */
-
-    if (currentTab === "upcoming") {
-
-      const response =
-        await fetch(
-          BACKEND + "/api/upcoming"
-        );
-
-      const data =
-        await response.json();
-
-      matches =
-        data.response || [];
-
-    }
-
-
-    /* FINISHED */
-
-    if (currentTab === "finished") {
-
-      const response =
-        await fetch(
-          BACKEND + "/api/finished"
-        );
-
-      const data =
-        await response.json();
-
-      matches =
-        data.response || [];
-
-    }
-
-
-    /* REMOVE DUPLICATES */
-
-    const unique =
-      new Map();
-
-    matches.forEach(match => {
-
-      if (match.fixture?.id) {
-
-        unique.set(
-          match.fixture.id,
-          match
-        );
-
-      }
-
-    });
+    const data =
+      await response.json();
 
 
     allMatches =
-      Array.from(unique.values());
+      Array.isArray(data.response)
+      ? data.response
+      : [];
+
+
+    selectedLeague =
+      "all";
 
 
     updateLeagueDropdown(
@@ -916,26 +1070,122 @@ async function loadMatches() {
 
   } catch (error) {
 
+    console.error(
+      "DS GOAL error:",
+      error
+    );
+
+
     status.textContent =
       "Unable to load matches.";
 
+
     container.innerHTML = `
+
       <div class="empty-state">
+
         <div class="empty-ball">
+
           <span class="s1">★</span>
           <span class="s2">★</span>
           <span class="s3">★</span>
           <span class="s4">★</span>
           <span class="s5">★</span>
+
         </div>
 
         <div class="empty-text">
-          No matches available right now.
+          Unable to connect to the football server.
         </div>
+
       </div>
+
     `;
 
   }
+
+}
+
+
+/* ================= STATUS HELPERS ================= */
+
+const LIVE_STATUSES = [
+  "1H",
+  "2H",
+  "ET",
+  "BT",
+  "P"
+];
+
+
+const FINISHED_STATUSES = [
+  "FT",
+  "AET",
+  "PEN"
+];
+
+
+function getMatchStatus(match) {
+
+  return (
+    match.fixture?.status?.short ||
+    ""
+  );
+
+}
+
+
+function isLive(match) {
+
+  return LIVE_STATUSES.includes(
+    getMatchStatus(match)
+  );
+
+}
+
+
+function isFinished(match) {
+
+  return FINISHED_STATUSES.includes(
+    getMatchStatus(match)
+  );
+
+}
+
+
+function isUpcoming(match) {
+
+  const status =
+    getMatchStatus(match);
+
+  if (
+    LIVE_STATUSES.includes(status)
+  ) {
+
+    return false;
+
+  }
+
+
+  if (
+    FINISHED_STATUSES.includes(status)
+  ) {
+
+    return false;
+
+  }
+
+
+  if (
+    ["CANC", "ABD", "PST"].includes(status)
+  ) {
+
+    return false;
+
+  }
+
+
+  return true;
 
 }
 
@@ -965,9 +1215,13 @@ function updateLeagueDropdown(matches) {
     if (id && name) {
 
       leagues[id] = {
-        name: name,
+
+        name:
+          name,
+
         logo:
           match.league?.logo || ""
+
       };
 
     }
@@ -976,9 +1230,11 @@ function updateLeagueDropdown(matches) {
 
 
   select.innerHTML = `
+
     <option value="all">
       All Leagues
     </option>
+
   `;
 
 
@@ -991,16 +1247,28 @@ function updateLeagueDropdown(matches) {
     .forEach(id => {
 
       const option =
-        document.createElement("option");
+        document.createElement(
+          "option"
+        );
 
-      option.value = id;
+
+      option.value =
+        id;
+
 
       option.textContent =
         leagues[id].name;
 
-      select.appendChild(option);
+
+      select.appendChild(
+        option
+      );
 
     });
+
+
+  select.value =
+    selectedLeague;
 
 }
 
@@ -1010,12 +1278,16 @@ function updateLeagueDropdown(matches) {
 function filterMatchesByLeague() {
 
   selectedLeague =
-    document.getElementById(
-      "leagueSelect"
-    ).value;
+    document
+      .getElementById(
+        "leagueSelect"
+      )
+      .value;
 
 
-  displayMatches(allMatches);
+  displayMatches(
+    allMatches
+  );
 
 }
 
@@ -1029,6 +1301,7 @@ function displayMatches(matches) {
       "matchStatus"
     );
 
+
   const container =
     document.getElementById(
       "matchesContainer"
@@ -1036,46 +1309,105 @@ function displayMatches(matches) {
 
 
   let filtered =
-    matches;
+    [...matches];
 
 
-  if (selectedLeague !== "all") {
+  /* STATUS FILTER */
+
+  if (
+    currentTab === "live"
+  ) {
 
     filtered =
-      matches.filter(match =>
-        String(match.league?.id) ===
-        String(selectedLeague)
+      filtered.filter(
+        match => isLive(match)
       );
 
   }
 
 
-  container.innerHTML = "";
+  if (
+    currentTab === "upcoming"
+  ) {
+
+    filtered =
+      filtered.filter(
+        match => isUpcoming(match)
+      );
+
+  }
 
 
-  if (filtered.length === 0) {
+  if (
+    currentTab === "finished"
+  ) {
+
+    filtered =
+      filtered.filter(
+        match => isFinished(match)
+      );
+
+  }
+
+
+  /* LEAGUE FILTER */
+
+  if (
+    selectedLeague !== "all"
+  ) {
+
+    filtered =
+      filtered.filter(
+        match =>
+          String(
+            match.league?.id
+          ) ===
+          String(
+            selectedLeague
+          )
+      );
+
+  }
+
+
+  container.innerHTML =
+    "";
+
+
+  if (
+    filtered.length === 0
+  ) {
 
     status.textContent =
-      currentTab === "all"
-      ? "No matches available."
-      : "No " + currentTab + " matches.";
+      "No " +
+      (
+        currentTab === "all"
+        ? ""
+        : currentTab + " "
+      ) +
+      "matches found.";
+
 
     container.innerHTML = `
+
       <div class="empty-state">
 
         <div class="empty-ball">
+
           <span class="s1">★</span>
           <span class="s2">★</span>
           <span class="s3">★</span>
           <span class="s4">★</span>
           <span class="s5">★</span>
+
         </div>
 
         <div class="empty-text">
-          No matches found.
+          No matches found for this selection.
         </div>
 
       </div>
+
     `;
 
     return;
@@ -1099,6 +1431,7 @@ function displayMatches(matches) {
       match.league?.id ||
       "other";
 
+
     const name =
       match.league?.name ||
       "Other Competitions";
@@ -1108,12 +1441,14 @@ function displayMatches(matches) {
 
       groups[id] = {
 
-        name: name,
+        name:
+          name,
 
         logo:
           match.league?.logo || "",
 
-        matches: []
+        matches:
+          []
 
       };
 
@@ -1127,15 +1462,27 @@ function displayMatches(matches) {
   });
 
 
+  /* SORT LEAGUES */
+
+  const sortedGroups =
+    Object.values(groups)
+      .sort((a, b) =>
+        a.name.localeCompare(
+          b.name
+        )
+      );
+
+
   /* DISPLAY EACH LEAGUE */
 
-  Object.values(groups)
-    .forEach(group => {
+  sortedGroups.forEach(
+    group => {
 
       const leagueBox =
         document.createElement(
           "div"
         );
+
 
       leagueBox.className =
         "league-group";
@@ -1149,18 +1496,17 @@ function displayMatches(matches) {
 
             ${
               group.logo
-
               ? `
                 <img
                   class="league-logo"
-                  src="${group.logo}"
+                  src="${escapeHTML(group.logo)}"
+                  onerror="this.style.display='none'"
                 >
               `
-
               : ""
             }
 
-            ${group.name}
+            ${escapeHTML(group.name)}
 
           </div>
 
@@ -1173,145 +1519,288 @@ function displayMatches(matches) {
       `;
 
 
-      group.matches.forEach(
-        match => {
+      group.matches
+        .sort(
+          (a, b) =>
+            new Date(
+              a.fixture?.date || 0
+            ) -
+            new Date(
+              b.fixture?.date || 0
+            )
+        )
+        .forEach(
+          match => {
 
-          const home =
-            match.teams?.home?.name ||
-            "Home";
-
-          const away =
-            match.teams?.away?.name ||
-            "Away";
-
-
-          const homeLogo =
-            match.teams?.home?.logo ||
-            "";
-
-          const awayLogo =
-            match.teams?.away?.logo ||
-            "";
-
-
-          const homeScore =
-            match.goals?.home ?? "-";
-
-          const awayScore =
-            match.goals?.away ?? "-";
-
-
-          let matchTime = "";
-
-
-          if (
-            match.fixture?.date
-          ) {
-
-            matchTime =
-              new Date(
-                match.fixture.date
-              ).toLocaleTimeString(
-                [],
-                {
-                  hour: "2-digit",
-                  minute: "2-digit"
-                }
+            const matchBox =
+              createMatchCard(
+                match
               );
 
-          }
 
-
-          const matchBox =
-            document.createElement(
-              "div"
+            leagueBox.appendChild(
+              matchBox
             );
 
-          matchBox.className =
-            "match";
-
-
-          matchBox.innerHTML = `
-
-            <div class="match-status">
-              ${matchTime}
-            </div>
-
-
-            <div class="team-row">
-
-              <div class="team">
-
-                ${
-                  homeLogo
-
-                  ? `
-                    <img
-                      src="${homeLogo}"
-                    >
-                  `
-
-                  : ""
-                }
-
-                <span class="team-name">
-                  ${home}
-                </span>
-
-              </div>
-
-
-              <div class="score">
-                ${homeScore}
-              </div>
-
-            </div>
-
-
-            <div class="team-row">
-
-              <div class="team">
-
-                ${
-                  awayLogo
-
-                  ? `
-                    <img
-                      src="${awayLogo}"
-                    >
-                  `
-
-                  : ""
-                }
-
-                <span class="team-name">
-                  ${away}
-                </span>
-
-              </div>
-
-
-              <div class="score">
-                ${awayScore}
-              </div>
-
-            </div>
-
-          `;
-
-
-          leagueBox.appendChild(
-            matchBox
-          );
-
-        });
+          }
+        );
 
 
       container.appendChild(
         leagueBox
       );
 
-    });
+    }
+  );
+
+}
+
+
+/* ================= MATCH CARD ================= */
+
+function createMatchCard(match) {
+
+  const home =
+    match.teams?.home?.name ||
+    "Home";
+
+
+  const away =
+    match.teams?.away?.name ||
+    "Away";
+
+
+  const homeLogo =
+    match.teams?.home?.logo ||
+    "";
+
+
+  const awayLogo =
+    match.teams?.away?.logo ||
+    "";
+
+
+  const homeScore =
+    match.goals?.home ??
+    "-";
+
+
+  const awayScore =
+    match.goals?.away ??
+    "-";
+
+
+  const statusShort =
+    getMatchStatus(match);
+
+
+  const statusLong =
+    match.fixture?.status?.long ||
+    "";
+
+
+  let matchTime =
+    "--:--";
+
+
+  if (
+    match.fixture?.date
+  ) {
+
+    matchTime =
+      new Date(
+        match.fixture.date
+      ).toLocaleTimeString(
+        "en-NG",
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "Africa/Lagos"
+        }
+      );
+
+  }
+
+
+  let statusText =
+    matchTime;
+
+
+  let statusClass =
+    "";
+
+
+  if (
+    isLive(match)
+  ) {
+
+    const elapsed =
+      match.fixture?.status?.elapsed;
+
+
+    statusText =
+      elapsed
+      ? "LIVE " + elapsed + "'"
+      : "LIVE";
+
+
+    statusClass =
+      "live";
+
+  }
+
+
+  if (
+    isFinished(match)
+  ) {
+
+    statusText =
+      statusShort === "PEN"
+      ? "PENALTIES"
+      : "FULL TIME";
+
+
+    statusClass =
+      "finished";
+
+  }
+
+
+  if (
+    statusShort === "HT"
+  ) {
+
+    statusText =
+      "HALF TIME";
+
+
+    statusClass =
+      "live";
+
+  }
+
+
+  const matchBox =
+    document.createElement(
+      "div"
+    );
+
+
+  matchBox.className =
+    "match";
+
+
+  matchBox.innerHTML = `
+
+    <div class="match-status ${statusClass}">
+      ${escapeHTML(statusText)}
+    </div>
+
+
+    <div class="team-row">
+
+      <div class="team">
+
+        ${
+          homeLogo
+          ? `
+            <img
+              src="${escapeHTML(homeLogo)}"
+              alt=""
+              onerror="this.style.display='none'"
+            >
+          `
+          : ""
+        }
+
+        <span class="team-name">
+          ${escapeHTML(home)}
+        </span>
+
+      </div>
+
+
+      <div class="score">
+        ${homeScore}
+      </div>
+
+    </div>
+
+
+    <div class="team-row">
+
+      <div class="team">
+
+        ${
+          awayLogo
+          ? `
+            <img
+              src="${escapeHTML(awayLogo)}"
+              alt=""
+              onerror="this.style.display='none'"
+            >
+          `
+          : ""
+        }
+
+        <span class="team-name">
+          ${escapeHTML(away)}
+        </span>
+
+      </div>
+
+
+      <div class="score">
+        ${awayScore}
+      </div>
+
+    </div>
+
+
+    ${
+      statusLong
+      ? `
+        <div class="match-meta">
+          ${escapeHTML(statusLong)}
+        </div>
+      `
+      : ""
+    }
+
+  `;
+
+
+  return matchBox;
+
+}
+
+
+/* ================= SAFE HTML ================= */
+
+function escapeHTML(value) {
+
+  return String(value ?? "")
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
 
 }
 
@@ -1336,22 +1825,33 @@ async function loadLeagues() {
 
     const response =
       await fetch(
-        BACKEND + "/api/leagues"
+        BACKEND +
+        "/api/leagues"
       );
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        "Unable to load leagues"
+      );
+
+    }
 
 
     const data =
       await response.json();
 
 
-    if (!data.response) {
+    if (
+      !Array.isArray(
+        data.response
+      )
+    ) {
 
-      container.innerHTML =
-        `<div class="loading">
-          Unable to load competitions.
-        </div>`;
-
-      return;
+      throw new Error(
+        "Invalid league response"
+      );
 
     }
 
@@ -1366,6 +1866,12 @@ async function loadLeagues() {
 
 
   } catch (error) {
+
+    console.error(
+      "League error:",
+      error
+    );
+
 
     container.innerHTML =
       `<div class="loading">
@@ -1389,83 +1895,114 @@ function displayLeagues(
     );
 
 
-  container.innerHTML = "";
+  container.innerHTML =
+    "";
 
 
-  leagues.forEach(item => {
+  if (
+    leagues.length === 0
+  ) {
 
-    const league =
-      item.league;
+    container.innerHTML =
+      `<div class="loading">
+        No competitions found.
+      </div>`;
 
-    const country =
-      item.country;
+    return;
 
-
-    if (!league) return;
-
-
-    const card =
-      document.createElement(
-        "div"
-      );
-
-    card.className =
-      "competition-card";
+  }
 
 
-    card.innerHTML = `
+  leagues.forEach(
+    item => {
 
-      ${
-        league.logo
+      const league =
+        item.league;
 
-        ? `
-          <img
-            src="${league.logo}"
-          >
-        `
 
-        : `
-          <div
-            style="
-            width:40px;
-            height:40px;
-            font-size:30px;">
-            🏆
-          </div>
-        `
+      const country =
+        item.country;
+
+
+      if (!league) {
+        return;
       }
 
 
-      <div class="competition-info">
+      const card =
+        document.createElement(
+          "div"
+        );
 
-        <div class="competition-name">
-          ${
-            league.name ||
-            "Unknown Competition"
-          }
+
+      card.className =
+        "competition-card";
+
+
+      card.innerHTML = `
+
+        ${
+          league.logo
+
+          ? `
+            <img
+              src="${escapeHTML(league.logo)}"
+              alt=""
+              onerror="this.style.display='none'"
+            >
+          `
+
+          : `
+            <div
+              style="
+                width:40px;
+                height:40px;
+                font-size:30px;">
+              🏆
+            </div>
+          `
+        }
+
+
+        <div class="competition-info">
+
+          <div class="competition-name">
+            ${
+              escapeHTML(
+                league.name ||
+                "Unknown Competition"
+              )
+            }
+          </div>
+
+
+          <div class="competition-country">
+
+            ${
+              escapeHTML(
+                country?.name ||
+                ""
+              )
+            }
+
+          </div>
+
         </div>
 
-        <div class="competition-country">
-          ${
-            country?.name || ""
-          }
+
+        <div class="arrow">
+          ›
         </div>
 
-      </div>
+      `;
 
 
-      <div class="arrow">
-        ›
-      </div>
+      container.appendChild(
+        card
+      );
 
-    `;
-
-
-    container.appendChild(
-      card
-    );
-
-  });
+    }
+  );
 
 }
 
@@ -1480,28 +2017,33 @@ function filterLeagueCatalogue() {
         "leagueSearch"
       )
       .value
-      .toLowerCase();
+      .toLowerCase()
+      .trim();
 
 
   const filtered =
-    allLeagues.filter(item => {
+    allLeagues.filter(
+      item => {
 
-      const name =
-        item.league?.name
-          ?.toLowerCase() || "";
-
-
-      const country =
-        item.country?.name
-          ?.toLowerCase() || "";
+        const name =
+          item.league?.name
+            ?.toLowerCase() ||
+          "";
 
 
-      return (
-        name.includes(search) ||
-        country.includes(search)
-      );
+        const country =
+          item.country?.name
+            ?.toLowerCase() ||
+          "";
 
-    });
+
+        return (
+          name.includes(search) ||
+          country.includes(search)
+        );
+
+      }
+    );
 
 
   displayLeagues(
@@ -1515,21 +2057,22 @@ function filterLeagueCatalogue() {
 
 function openSearch() {
 
+  const matchesPage =
+    document.getElementById(
+      "matchesPage"
+    );
+
+
   if (
-    document
-      .getElementById(
-        "matchesPage"
-      )
-      .classList
+    matchesPage.classList
       .contains("active")
   ) {
 
-    const leagueSelect =
-      document.getElementById(
+    document
+      .getElementById(
         "leagueSelect"
-      );
-
-    leagueSelect.focus();
+      )
+      .focus();
 
   } else {
 
@@ -1570,27 +2113,9 @@ function refreshCurrentPage() {
 }
 
 
-/* ================= DATE BUTTONS ================= */
-
-function previousDay() {
-
-  alert(
-    "Previous dates will be connected next."
-  );
-
-}
-
-
-function nextDay() {
-
-  alert(
-    "Next dates will be connected next."
-  );
-
-}
-
-
 /* ================= START ================= */
+
+createDateBar();
 
 loadMatches();
 
