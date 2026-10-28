@@ -466,6 +466,47 @@ body {
   50% { background: #fecdd3; }
 }
 
+/* LIGHT DEFAULT + DARK MODE */
+:root { color-scheme: light; --app-bg:#eef2f5; --surface:#ffffff; --text:#111827; --muted:#667085; --line:#e7ebef; --soft:#f7f9fb; --navy:#061b35; --navy2:#082c52; --gold:#f5c242; }
+body { background:var(--app-bg); color:var(--text); }
+.filters,.league-select-wrap { background:var(--app-bg); }
+.league-block,.league-list-item,.filter-btn,#leagueSelect,.detail-card,.detail-score-card { background:var(--surface); color:var(--text); }
+.match { border-color:var(--line); cursor:pointer; }
+.match:active { background:rgba(245,194,66,.13); }
+.filter-btn { color:var(--text); }
+.filter-btn.active,.date-item.active,.nav-item.active { background:var(--gold); color:#061b35; border-color:var(--gold); }
+.date-item.active { background:var(--gold); }
+.header,.date-bar,.bottom-nav,.search-box { background:var(--navy); }
+.logo span { color:var(--gold); }
+body.dark-mode { color-scheme:dark; --app-bg:#091321; --surface:#111e30; --text:#f3f6fb; --muted:#aab6c7; --line:#25354a; --soft:#0d1929; }
+body.dark-mode .filters,body.dark-mode .league-select-wrap { background:var(--app-bg); }
+body.dark-mode .filter-btn,body.dark-mode #leagueSelect,body.dark-mode .league-block,body.dark-mode .league-list-item,body.dark-mode .detail-card,body.dark-mode .detail-score-card { background:var(--surface); color:var(--text); border-color:var(--line); }
+body.dark-mode .league-header { background:#172b45; }
+body.dark-mode .match.has-event-alert { background:#431b2a; }
+body.dark-mode .match-event-alert { color:#fff; }
+body.dark-mode .team.goal-scored .team-name { color:#ff8a9c; }
+body.dark-mode .status-message,body.dark-mode .match-time,body.dark-mode .vs { color:var(--muted); }
+.theme-btn { border:0; background:transparent; color:inherit; }
+.details-top { display:flex; justify-content:space-between; align-items:center; padding:12px 10px; }
+.back-btn,.detail-fav { border:0; border-radius:8px; padding:9px 12px; background:var(--gold); color:#061b35; font-weight:700; }
+.section-heading { margin:12px 0; }
+.detail-score-card { background:var(--surface); border-radius:12px; padding:18px 10px; text-align:center; box-shadow:0 1px 5px #0001; }
+.detail-teams { display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:center; }
+.detail-team { min-width:0; font-weight:700; font-size:13px; }
+.detail-team img { width:38px; height:38px; object-fit:contain; display:block; margin:0 auto 7px; }
+.detail-score { font-size:26px; font-weight:900; white-space:nowrap; }
+.detail-status { color:var(--muted); font-size:12px; margin-top:8px; }
+.detail-card { background:var(--surface); border-radius:10px; margin-top:12px; padding:13px; box-shadow:0 1px 4px #0001; }
+.detail-card h3 { margin-bottom:10px; font-size:15px; }
+.detail-row { display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); font-size:13px; }
+.detail-row:last-child { border-bottom:0; }
+.event-row { display:grid; grid-template-columns:48px 1fr 1fr; gap:8px; padding:9px 0; border-bottom:1px solid var(--line); font-size:12px; }
+.detail-loading { color:var(--muted); font-size:13px; padding:8px 0; }
+.fav-star { border:0; background:transparent; font-size:17px; padding:4px; cursor:pointer; }
+.match .fav-star { grid-column:5; grid-row:1; z-index:4; }
+.match { grid-template-columns:55px 1fr 65px 1fr 25px; }
+@media (max-width:380px) { .match { grid-template-columns:43px 1fr 49px 1fr 22px; gap:2px; padding-left:2px; padding-right:2px; } .team { gap:3px; font-size:10px; } .team-logo { width:20px;height:20px; } .score {font-size:13px;} }
+
 /* DESKTOP */
 @media (min-width: 700px) {
   body {
@@ -496,6 +537,7 @@ body {
 
   <div class="header-right">
     <div class="icon-btn" onclick="toggleSearch()">⌕</div>
+    <div class="icon-btn" onclick="toggleTheme()" id="themeButton" title="Switch theme">☾</div>
     <div class="icon-btn" onclick="loadFixtures()">↻</div>
   </div>
 </header>
@@ -568,35 +610,20 @@ body {
 
 </div>
 
-<!-- NEWS PAGE -->
-<div id="newsPage" class="page">
-
-  <div class="content">
-    <div class="status-message">
-      Football news will be added here.
-    </div>
-  </div>
-
+<!-- MATCH DETAILS PAGE -->
+<div id="detailsPage" class="page">
+  <div class="details-top"><button class="back-btn" onclick="closeMatchDetails()">‹ Back</button><button class="detail-fav" id="detailFavButton" onclick="toggleCurrentFavourite()">☆ Favourite</button></div>
+  <main class="content" id="matchDetailsContent"><div class="status-message">Choose a match to view details.</div></main>
 </div>
+
+<!-- FAVOURITES PAGE -->
+<div id="favouritesPage" class="page"><div class="content"><h3 class="section-heading">⭐ Favourite Matches</h3><main id="favouritesContent"><div class="status-message">Your saved matches will appear here.</div></main></div></div>
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-
-  <div class="nav-item active" onclick="showPage('matches', this)">
-    <span class="nav-icon">⚽</span>
-    Matches
-  </div>
-
-  <div class="nav-item" onclick="showPage('leagues', this)">
-    <span class="nav-icon">🏆</span>
-    Leagues
-  </div>
-
-  <div class="nav-item" onclick="showPage('news', this)">
-    <span class="nav-icon">📰</span>
-    News
-  </div>
-
+  <div class="nav-item active" onclick="showPage('matches', this)"><span class="nav-icon">⚽</span>Matches</div>
+  <div class="nav-item" onclick="showPage('favourites', this)"><span class="nav-icon">⭐</span>Favourites</div>
+  <div class="nav-item" onclick="showPage('leagues', this)"><span class="nav-icon">🏆</span>Leagues</div>
 </nav>
 
 <script>
@@ -620,6 +647,9 @@ let allMatches = [];
 let currentFilter = "all";
 
 let leagueCache = [];
+let favourites = loadFavourites();
+let currentDetailMatch = null;
+let currentPage = "matches";
 
 // Score baseline prevents a goal alert on first load.
 let previousScores = Object.create(null);
@@ -776,12 +806,13 @@ async function loadFixtures() {
       if (hasScoreBaseline && previousScores[fixtureId]) {
         const old = previousScores[fixtureId];
         if (homeScore > old.home) {
-          goalAlerts[fixtureId + "_home"] = now + 15000;
-          delete pendingGoalAlerts[fixtureId + "_home"];
-        }
-        if (awayScore > old.away) {
-          goalAlerts[fixtureId + "_away"] = now + 15000;
-          delete pendingGoalAlerts[fixtureId + "_away"];
+          const homeKey = fixtureId + "_home", awayKey = fixtureId + "_away";
+          goalAlerts[homeKey] = now + 12000;
+          delete goalAlerts[awayKey]; delete pendingGoalAlerts[homeKey]; delete pendingGoalAlerts[awayKey];
+        } else if (awayScore > old.away) {
+          const homeKey = fixtureId + "_home", awayKey = fixtureId + "_away";
+          goalAlerts[awayKey] = now + 12000;
+          delete goalAlerts[homeKey]; delete pendingGoalAlerts[homeKey]; delete pendingGoalAlerts[awayKey];
         }
       }
     });
@@ -855,12 +886,12 @@ function getEventSignature(fixtureId, event) {
 
 async function refreshLiveEventAlerts(matches) {
   const now = Date.now();
-  if (isEventPollRunning || now - lastEventPollAt < 45000) return;
+  if (isEventPollRunning || now - lastEventPollAt < 15000) return;
   lastEventPollAt = now;
   isEventPollRunning = true;
 
   try {
-    const liveMatches = matches.filter(match => isLive(match) && match.fixture?.id).slice(0, 12);
+    const liveMatches = matches.filter(match => isLive(match) && match.fixture?.id).slice(0, 20);
     const results = await Promise.all(liveMatches.map(async match => {
       const fixtureId = String(match.fixture.id);
       try {
@@ -905,7 +936,17 @@ async function refreshLiveEventAlerts(matches) {
                 delete pendingGoalAlerts[otherSideKey];
                 // If the score has already changed, keep the confirmed GOAL label instead of reverting to a dot.
                 if (!(goalAlerts[goalKey] > pollTime)) {
-                  pendingGoalAlerts[goalKey] = { expiresAt: pollTime + 90000, minute: event?.time?.elapsed ? String(event.time.elapsed) + "'" : "" };
+                  const minute = event?.time?.elapsed ? String(event.time.elapsed) + "'" : "";
+                  pendingGoalAlerts[goalKey] = { expiresAt: pollTime + 5000, minute };
+                  // Quickly change the detected dot to a GOAL label without waiting for score polling.
+                  setTimeout(() => {
+                    if (pendingGoalAlerts[goalKey] && pendingGoalAlerts[goalKey].minute === minute) {
+                      delete pendingGoalAlerts[goalKey];
+                      delete pendingGoalAlerts[otherSideKey];
+                      goalAlerts[goalKey] = Date.now() + 12000;
+                      renderMatches();
+                    }
+                  }, 1500);
                 }
               }
             } else {
@@ -1375,9 +1416,7 @@ function createMatchElement(match) {
     </div>
 
 
-    <div class="arrow">
-      ›
-    </div>
+    <button class="fav-star" aria-label="Save favourite" onclick="event.stopPropagation(); toggleFavourite('${fixtureId}')">${favourites[fixtureId] ? "★" : "☆"}</button>
 
     ${activeEventAlert && activeEventAlert.expiresAt > Date.now()
       ? `<div class="match-event-alert ${escapeAttribute(activeEventAlert.kind)}">${escapeHtml(activeEventAlert.label)} ${escapeHtml(activeEventAlert.minute || "")}</div>`
@@ -1386,6 +1425,10 @@ function createMatchElement(match) {
   `;
 
 
+  row.setAttribute("role", "button");
+  row.setAttribute("tabindex", "0");
+  row.addEventListener("click", () => openMatchDetails(fixtureId));
+  row.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openMatchDetails(fixtureId); } });
   return row;
 
 }
@@ -1617,52 +1660,14 @@ function renderLeagueList() {
 ========================= */
 
 function showPage(page, element) {
-
-  document
-    .querySelectorAll(".page")
-    .forEach(p =>
-      p.classList.remove("active")
-    );
-
-
-  document
-    .querySelectorAll(".nav-item")
-    .forEach(n =>
-      n.classList.remove("active")
-    );
-
-
-  if (page === "matches") {
-
-    document
-      .getElementById("matchesPage")
-      .classList.add("active");
-
-  }
-
-
-  if (page === "leagues") {
-
-    document
-      .getElementById("leaguesPage")
-      .classList.add("active");
-
-    loadLeagues();
-
-  }
-
-
-  if (page === "news") {
-
-    document
-      .getElementById("newsPage")
-      .classList.add("active");
-
-  }
-
-
-  element.classList.add("active");
-
+  currentPage = page;
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  const pageEl = document.getElementById(page + "Page");
+  if (pageEl) pageEl.classList.add("active");
+  if (element) element.classList.add("active");
+  if (page === "leagues") loadLeagues();
+  if (page === "favourites") renderFavourites();
 }
 
 
@@ -1689,6 +1694,90 @@ function toggleSearch() {
 
 }
 
+
+/* =========================
+   THEME + FAVOURITES
+========================= */
+function toggleTheme() {
+  document.body.classList.toggle("dark-mode");
+  const dark = document.body.classList.contains("dark-mode");
+  localStorage.setItem("sawaGoalTheme", dark ? "dark" : "light");
+  document.getElementById("themeButton").textContent = dark ? "☀" : "☾";
+}
+function loadFavourites() {
+  try { return JSON.parse(localStorage.getItem("sawaGoalFavourites") || "{}"); } catch (_) { return {}; }
+}
+function saveFavourites() { localStorage.setItem("sawaGoalFavourites", JSON.stringify(favourites)); }
+function toggleFavourite(id) {
+  const match = allMatches.find(m => String(m.fixture?.id) === String(id));
+  if (favourites[id]) delete favourites[id];
+  else if (match) favourites[id] = match;
+  saveFavourites(); renderMatches();
+  if (currentPage === "favourites") renderFavourites();
+  if (currentDetailMatch && String(currentDetailMatch.fixture?.id) === String(id)) updateDetailFavouriteButton();
+}
+function renderFavourites() {
+  const el = document.getElementById("favouritesContent");
+  const items = Object.values(favourites);
+  el.innerHTML = "";
+  if (!items.length) { el.innerHTML = '<div class="status-message">No favourite matches saved yet. Tap ☆ beside any match to save it.</div>'; return; }
+  items.forEach(match => el.appendChild(createMatchElement(match)));
+}
+function toggleCurrentFavourite() { if (currentDetailMatch) toggleFavourite(String(currentDetailMatch.fixture?.id)); }
+function updateDetailFavouriteButton() {
+  const id = String(currentDetailMatch?.fixture?.id || "");
+  const b = document.getElementById("detailFavButton");
+  if (b) b.textContent = favourites[id] ? "★ Saved" : "☆ Favourite";
+}
+function closeMatchDetails() {
+  document.getElementById("detailsPage").classList.remove("active");
+  document.getElementById((currentPage === "favourites" ? "favourites" : "matches") + "Page").classList.add("active");
+  currentDetailMatch = null;
+}
+async function openMatchDetails(id) {
+  const match = allMatches.find(m => String(m.fixture?.id) === String(id)) || favourites[id];
+  if (!match) return;
+  currentDetailMatch = match;
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById("detailsPage").classList.add("active");
+  updateDetailFavouriteButton();
+  const el = document.getElementById("matchDetailsContent");
+  const home = match.teams?.home || {}, away = match.teams?.away || {}, league = match.league || {}, fixture = match.fixture || {};
+  const score = match.goals?.home != null || match.goals?.away != null ? `${match.goals?.home ?? 0} - ${match.goals?.away ?? 0}` : "VS";
+  const kickoff = fixture.timestamp ? new Intl.DateTimeFormat("en-NG", {timeZone:"Africa/Lagos",dateStyle:"medium",timeStyle:"short"}).format(new Date(fixture.timestamp*1000)) : "Time unavailable";
+  el.innerHTML = `<div class="detail-score-card"><div class="detail-teams"><div class="detail-team">${home.logo?`<img src="${escapeAttribute(home.logo)}" onerror="this.style.display='none'">`:''}${escapeHtml(home.name||"Home")}</div><div class="detail-score">${escapeHtml(score)}</div><div class="detail-team">${away.logo?`<img src="${escapeAttribute(away.logo)}" onerror="this.style.display='none'">`:''}${escapeHtml(away.name||"Away")}</div></div><div class="detail-status">${escapeHtml(fixture.status?.long || fixture.status?.short || "Status unavailable")} ${fixture.status?.elapsed ? "· "+fixture.status.elapsed+"'" : ""}</div></div>
+  <section class="detail-card"><h3>Match Overview</h3>${detailRow("Competition", league.name||"Unavailable")}${detailRow("Country", league.country||"Unavailable")}${detailRow("Round", league.round||"Unavailable")}${detailRow("Kick-off", kickoff)}${detailRow("Venue", fixture.venue?.name||"Unavailable")}${detailRow("City", fixture.venue?.city||"Unavailable")}${detailRow("Referee", fixture.referee||"Unavailable")}${detailRow("Status", fixture.status?.long||"Unavailable")}</section>
+  <section class="detail-card"><h3>Match Events</h3><div id="detailEvents" class="detail-loading">Loading events…</div></section>
+  <section class="detail-card"><h3>Team Statistics</h3><div id="detailStats" class="detail-loading">Loading statistics…</div></section>
+  <section class="detail-card"><h3>Lineups</h3><div id="detailLineups" class="detail-loading">Loading lineups…</div></section>`;
+  const fixtureId = String(fixture.id || id);
+  const base = "https://football-livescore-backend.vercel.app/api/";
+  await Promise.all([
+    loadDetailSection("detailEvents", base+"events?fixture="+encodeURIComponent(fixtureId), data => renderEvents(data.response||[])),
+    loadDetailSection("detailStats", base+"statistics?fixture="+encodeURIComponent(fixtureId), data => renderStatistics(data.response||[])),
+    loadDetailSection("detailLineups", base+"lineups?fixture="+encodeURIComponent(fixtureId), data => renderLineups(data.response||[]))
+  ]);
+}
+function detailRow(label,value) { return `<div class="detail-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value||"Unavailable")}</strong></div>`; }
+async function loadDetailSection(id,url,render) {
+  const el=document.getElementById(id); if(!el) return;
+  try { const r=await fetch(url,{cache:"no-store"}); const d=await r.json(); if(!r.ok) throw new Error(d.message||d.error||"Unavailable"); const html=render(d); if(document.getElementById(id)) document.getElementById(id).innerHTML=html||'<div class="detail-loading">No information provided for this match yet.</div>'; }
+  catch(_) { if(document.getElementById(id)) document.getElementById(id).innerHTML='<div class="detail-loading">This information is unavailable from the provider for this match.</div>'; }
+}
+function renderEvents(events) {
+  if(!events.length) return '<div class="detail-loading">No match events available yet.</div>';
+  return events.map(e=>`<div class="event-row"><strong>${escapeHtml((e.time?.elapsed??"")+"'"+(e.time?.extra?" +"+e.time.extra: ""))}</strong><span>${escapeHtml(e.team?.name||"")}<br>${escapeHtml(e.player?.name||"")}</span><span>${escapeHtml(e.type||"")} · ${escapeHtml(e.detail||"")}${e.assist?.name?"<br>Assist: "+escapeHtml(e.assist.name):""}</span></div>`).join("");
+}
+function renderStatistics(teams) {
+  if(!teams.length) return '<div class="detail-loading">Statistics are not available yet.</div>';
+  const names=teams.map(t=>t.team?.name||"Team"); const a=teams[0]?.statistics||[], b=teams[1]?.statistics||[];
+  const values={}; a.forEach(x=>values[x.type]=[x.value,"–"]); b.forEach(x=>{if(!values[x.type])values[x.type]=["–","–"];values[x.type][1]=x.value;});
+  return `<div class="detail-row"><strong>${escapeHtml(names[0]||"Home")}</strong><strong>${escapeHtml(names[1]||"Away")}</strong></div>`+Object.entries(values).map(([k,v])=>detailRow(k,`${v[0]??"–"}   |   ${v[1]??"–"}`)).join("");
+}
+function renderLineups(teams) {
+  if(!teams.length) return '<div class="detail-loading">Lineups are usually available shortly before kick-off; none were returned.</div>';
+  return teams.map(t=>`<div class="detail-row"><strong>${escapeHtml(t.team?.name||"Team")}</strong><span>${escapeHtml(t.formation||"Formation unavailable")}</span></div><div class="detail-row"><span>Coach</span><span>${escapeHtml(t.coach?.name||"Unavailable")}</span></div><div class="detail-row"><span>Starting XI</span><span>${(t.startXI||[]).map(p=>escapeHtml(p.player?.name||"")).join(", ")||"Unavailable"}</span></div><div class="detail-row"><span>Substitutes</span><span>${(t.substitutes||[]).map(p=>escapeHtml(p.player?.name||"")).join(", ")||"Unavailable"}</span></div>`).join("");
+}
 
 /* =========================
    SECURITY HELPERS
@@ -1719,14 +1808,14 @@ function escapeAttribute(value) {
    START APP
 ========================= */
 
+if (localStorage.getItem("sawaGoalTheme") === "dark") { document.body.classList.add("dark-mode"); document.getElementById("themeButton").textContent = "☀"; }
 buildDateBar();
-
 loadFixtures();
 
 // Keep scores current without requiring users to press refresh.
 setInterval(() => {
   if (document.visibilityState === "visible") loadFixtures();
-}, 30000);
+}, 15000);
 
 </script>
 
