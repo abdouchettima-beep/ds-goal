@@ -391,11 +391,11 @@ body {
   animation: goalPulse 1s ease-in-out infinite;
 }
 .goal-alert.pending {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  background: rgba(225,29,72,.12);
-  animation: soundWave 1s ease-out infinite;
+  background: rgba(225,29,72,.16);
+  animation: soundWave .72s ease-out infinite;
 }
 .goal-dot {
   display: block;
@@ -404,7 +404,7 @@ body {
   border-radius: 50%;
   background: #e11d48;
   box-shadow: 0 0 0 2px rgba(225,29,72,.22);
-  animation: redDotBlink .65s ease-in-out infinite;
+  animation: redDotBlink .42s ease-in-out infinite;
 }
 .team.home .goal-alert { right: 0; }
 .team.away .goal-alert { left: 0; }
@@ -452,7 +452,7 @@ body {
 }
 @keyframes soundWave {
   0% { box-shadow: 0 0 0 0 rgba(225,29,72,.45); }
-  100% { box-shadow: 0 0 0 8px rgba(225,29,72,0); }
+  100% { box-shadow: 0 0 0 11px rgba(225,29,72,0); }
 }
 @media (prefers-reduced-motion: reduce) {
   .goal-alert.pending, .goal-dot, .goal-alert.confirmed { animation: none; }
@@ -520,6 +520,18 @@ body.dark-mode .status-message,body.dark-mode .match-time,body.dark-mode .vs { c
     transform: translateX(-50%);
   }
 }
+
+.table-scroll { overflow-x:auto; }
+.standings-table { width:100%; border-collapse:collapse; font-size:12px; }
+.standings-table th,.standings-table td { padding:8px 5px; border-bottom:1px solid var(--line); text-align:left; }
+.standings-table td:nth-child(1),.standings-table td:nth-child(3),.standings-table td:nth-child(4),.standings-table td:nth-child(5) { white-space:nowrap; }
+.standings-table td img { width:18px;height:18px;object-fit:contain;vertical-align:middle;margin-right:5px; }
+.standings-table .highlight-team { background:rgba(245,194,66,.18); font-weight:800; }
+.form-team { margin:8px 0 14px; }
+.form-team h4 { margin:8px 0; }
+.form-w,.form-l,.form-d,.form-na { display:inline-flex; min-width:22px;justify-content:center;padding:3px 5px;border-radius:4px;color:white; }
+.form-w { background:#15803d; } .form-l { background:#b91c1c; } .form-d { background:#64748b; } .form-na { background:#94a3b8; }
+
 </style>
 </head>
 
@@ -640,11 +652,11 @@ const API_BASE =
    APP STATE
 ========================= */
 
-let selectedDate = getNigeriaDate();
+let selectedDate = localStorage.getItem("sawaGoalSelectedDate") || getNigeriaDate();
 
 let allMatches = [];
 
-let currentFilter = "all";
+let currentFilter = ["all", "live", "upcoming", "finished"].includes(localStorage.getItem("sawaGoalFilter")) ? localStorage.getItem("sawaGoalFilter") : "all";
 
 let leagueCache = [];
 let favourites = loadFavourites();
@@ -946,7 +958,7 @@ async function refreshLiveEventAlerts(matches) {
                       goalAlerts[goalKey] = Date.now() + 12000;
                       renderMatches();
                     }
-                  }, 1500);
+                  }, 900);
                 }
               }
             } else {
@@ -991,6 +1003,7 @@ document
 
       const previousFilter = currentFilter;
       currentFilter = this.dataset.filter;
+      localStorage.setItem("sawaGoalFilter", currentFilter);
 
       if (currentFilter === "live" || previousFilter === "live") {
         loadFixtures();
@@ -1747,15 +1760,24 @@ async function openMatchDetails(id) {
   const kickoff = fixture.timestamp ? new Intl.DateTimeFormat("en-NG", {timeZone:"Africa/Lagos",dateStyle:"medium",timeStyle:"short"}).format(new Date(fixture.timestamp*1000)) : "Time unavailable";
   el.innerHTML = `<div class="detail-score-card"><div class="detail-teams"><div class="detail-team">${home.logo?`<img src="${escapeAttribute(home.logo)}" onerror="this.style.display='none'">`:''}${escapeHtml(home.name||"Home")}</div><div class="detail-score">${escapeHtml(score)}</div><div class="detail-team">${away.logo?`<img src="${escapeAttribute(away.logo)}" onerror="this.style.display='none'">`:''}${escapeHtml(away.name||"Away")}</div></div><div class="detail-status">${escapeHtml(fixture.status?.long || fixture.status?.short || "Status unavailable")} ${fixture.status?.elapsed ? "· "+fixture.status.elapsed+"'" : ""}</div></div>
   <section class="detail-card"><h3>Match Overview</h3>${detailRow("Competition", league.name||"Unavailable")}${detailRow("Country", league.country||"Unavailable")}${detailRow("Round", league.round||"Unavailable")}${detailRow("Kick-off", kickoff)}${detailRow("Venue", fixture.venue?.name||"Unavailable")}${detailRow("City", fixture.venue?.city||"Unavailable")}${detailRow("Referee", fixture.referee||"Unavailable")}${detailRow("Status", fixture.status?.long||"Unavailable")}</section>
-  <section class="detail-card"><h3>Match Events</h3><div id="detailEvents" class="detail-loading">Loading events…</div></section>
+  <section class="detail-card"><h3>Match Events · Timeline</h3><div id="detailEvents" class="detail-loading">Loading events…</div></section>
+  <section class="detail-card"><h3>Head to Head · Last 5</h3><div id="detailH2H" class="detail-loading">Loading previous meetings…</div></section>
+  <section class="detail-card"><h3>Last 5 Matches · Team Form</h3><div id="detailForm" class="detail-loading">Loading recent matches…</div></section>
+  <section class="detail-card"><h3>League Table</h3><div id="detailStandings" class="detail-loading">Loading league table…</div></section>
   <section class="detail-card"><h3>Team Statistics</h3><div id="detailStats" class="detail-loading">Loading statistics…</div></section>
   <section class="detail-card"><h3>Lineups</h3><div id="detailLineups" class="detail-loading">Loading lineups…</div></section>`;
   const fixtureId = String(fixture.id || id);
   const base = "https://football-livescore-backend.vercel.app/api/";
+  const homeId = String(home.id || ""), awayId = String(away.id || "");
+  const season = Number(league.season || (fixture.timestamp ? new Date(fixture.timestamp * 1000).getUTCFullYear() : new Date().getUTCFullYear()));
+  const leagueId = String(league.id || "");
   await Promise.all([
     loadDetailSection("detailEvents", base+"events?fixture="+encodeURIComponent(fixtureId), data => renderEvents(data.response||[])),
     loadDetailSection("detailStats", base+"statistics?fixture="+encodeURIComponent(fixtureId), data => renderStatistics(data.response||[])),
-    loadDetailSection("detailLineups", base+"lineups?fixture="+encodeURIComponent(fixtureId), data => renderLineups(data.response||[]))
+    loadDetailSection("detailLineups", base+"lineups?fixture="+encodeURIComponent(fixtureId), data => renderLineups(data.response||[])),
+    loadDetailSection("detailH2H", base+"headtohead?home="+encodeURIComponent(homeId)+"&away="+encodeURIComponent(awayId), data => renderRecentMatches(data.response||[], homeId, awayId, true)),
+    loadDetailSection("detailForm", base+"teamlast?home="+encodeURIComponent(homeId)+"&away="+encodeURIComponent(awayId)+"&season="+encodeURIComponent(season), data => renderTeamForms(data.home||[], data.away||[], home.name||"Home", away.name||"Away", homeId, awayId)),
+    loadDetailSection("detailStandings", base+"standings?league="+encodeURIComponent(leagueId)+"&season="+encodeURIComponent(season)+"&team="+encodeURIComponent(homeId), data => renderStandings(data.response||[], homeId))
   ]);
 }
 function detailRow(label,value) { return `<div class="detail-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value||"Unavailable")}</strong></div>`; }
@@ -1777,6 +1799,33 @@ function renderStatistics(teams) {
 function renderLineups(teams) {
   if(!teams.length) return '<div class="detail-loading">Lineups are usually available shortly before kick-off; none were returned.</div>';
   return teams.map(t=>`<div class="detail-row"><strong>${escapeHtml(t.team?.name||"Team")}</strong><span>${escapeHtml(t.formation||"Formation unavailable")}</span></div><div class="detail-row"><span>Coach</span><span>${escapeHtml(t.coach?.name||"Unavailable")}</span></div><div class="detail-row"><span>Starting XI</span><span>${(t.startXI||[]).map(p=>escapeHtml(p.player?.name||"")).join(", ")||"Unavailable"}</span></div><div class="detail-row"><span>Substitutes</span><span>${(t.substitutes||[]).map(p=>escapeHtml(p.player?.name||"")).join(", ")||"Unavailable"}</span></div>`).join("");
+}
+
+function resultBadge(match, teamId) {
+  const homeId = String(match.teams?.home?.id || "");
+  const awayId = String(match.teams?.away?.id || "");
+  const h = Number(match.goals?.home ?? 0), a = Number(match.goals?.away ?? 0);
+  if (match.fixture?.status?.short !== "FT" && match.fixture?.status?.short !== "AET" && match.fixture?.status?.short !== "PEN") return "–";
+  const score = homeId === teamId ? h - a : a - h;
+  return score > 0 ? "W" : score < 0 ? "L" : "D";
+}
+function renderRecentMatches(matches, homeId, awayId, h2h=false) {
+  if (!matches.length) return '<div class="detail-loading">No previous meetings are available for this fixture.</div>';
+  return matches.slice(0,5).map(m => {
+    const date = m.fixture?.timestamp ? new Intl.DateTimeFormat("en-NG",{timeZone:"Africa/Lagos",day:"numeric",month:"short",year:"numeric"}).format(new Date(m.fixture.timestamp*1000)) : "Date unavailable";
+    const hs = m.goals?.home ?? "–", as = m.goals?.away ?? "–";
+    const comp = m.league?.name || "";
+    return `<div class="event-row"><strong>${escapeHtml(date)}</strong><span>${escapeHtml(m.teams?.home?.name||"Home")}<br><b>${escapeHtml(hs)} - ${escapeHtml(as)}</b><br>${escapeHtml(m.teams?.away?.name||"Away")}</span><span>${escapeHtml(comp)}<br>${escapeHtml(m.fixture?.status?.short||"")}</span></div>`;
+  }).join("");
+}
+function renderTeamForms(homeMatches, awayMatches, homeName, awayName, homeId, awayId) {
+  const one = (name, matches, teamId) => `<div class="form-team"><h4>${escapeHtml(name)}</h4>${matches.slice(0,5).map(m=>{const r=resultBadge(m,teamId);const cls=r==="W"?"form-w":r==="L"?"form-l":r==="D"?"form-d":"form-na";return `<div class="event-row"><span>${escapeHtml(m.fixture?.date ? m.fixture.date.slice(0,10) : "Recent")}</span><span>${escapeHtml(m.teams?.home?.name||"")} ${escapeHtml(m.goals?.home??"–")}-${escapeHtml(m.goals?.away??"–")} ${escapeHtml(m.teams?.away?.name||"")}</span><b class="${cls}">${r}</b></div>`}).join("")||'<div class="detail-loading">No recent matches available.</div>'}</div>`;
+  return one(homeName,homeMatches,String(homeId||""))+one(awayName,awayMatches,String(awayId||""));
+}
+function renderStandings(response, teamId) {
+  const standings = response?.[0]?.league?.standings?.[0] || response?.[0]?.league?.standings?.flat?.()[0];
+  if (!standings || !standings.length) return '<div class="detail-loading">League table is not available for this competition or season.</div>';
+  return `<div class="table-scroll"><table class="standings-table"><thead><tr><th>#</th><th>Team</th><th>P</th><th>GD</th><th>Pts</th></tr></thead><tbody>${standings.map(row=>`<tr class="${String(row.team?.id)===String(teamId)?"highlight-team":""}"><td>${escapeHtml(row.rank)}</td><td>${row.team?.logo?`<img src="${escapeAttribute(row.team.logo)}" alt="" onerror="this.style.display='none'">`:""}${escapeHtml(row.team?.name||"Team")}</td><td>${escapeHtml(row.all?.played??"–")}</td><td>${escapeHtml(row.goalsDiff??"–")}</td><td><b>${escapeHtml(row.points??"–")}</b></td></tr>`).join("")}</tbody></table></div>`;
 }
 
 /* =========================
@@ -1810,6 +1859,7 @@ function escapeAttribute(value) {
 
 if (localStorage.getItem("sawaGoalTheme") === "dark") { document.body.classList.add("dark-mode"); document.getElementById("themeButton").textContent = "☀"; }
 buildDateBar();
+document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.filter === currentFilter));
 loadFixtures();
 
 // Keep scores current without requiring users to press refresh.
