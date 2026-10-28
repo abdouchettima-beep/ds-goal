@@ -554,7 +554,7 @@ function buildDateBar() {
     })
   );
 
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 14; i++) {
 
     const date = new Date(today);
 
@@ -631,12 +631,11 @@ async function loadFixtures() {
 
   try {
 
-    const response =
-      await fetch(
-        API_BASE +
-        "?date=" +
-        encodeURIComponent(selectedDate)
-      );
+    const requestUrl = currentFilter === "live"
+      ? "https://football-livescore-backend.vercel.app/api/football"
+      : API_BASE + "?date=" + encodeURIComponent(selectedDate);
+
+    const response = await fetch(requestUrl);
 
     const data = await response.json();
 
@@ -699,10 +698,14 @@ document
 
       this.classList.add("active");
 
-      currentFilter =
-        this.dataset.filter;
+      const previousFilter = currentFilter;
+      currentFilter = this.dataset.filter;
 
-      renderMatches();
+      if (currentFilter === "live" || previousFilter === "live") {
+        loadFixtures();
+      } else {
+        renderMatches();
+      }
 
     });
 
@@ -864,7 +867,7 @@ function renderMatches() {
 
     content.innerHTML = `
       <div class="status-message">
-        No real fixtures found for this selection.
+        No matches found for this selection. Check another date or filter.
       </div>
     `;
 
@@ -1455,6 +1458,11 @@ function escapeAttribute(value) {
 buildDateBar();
 
 loadFixtures();
+
+// Keep scores current without requiring users to press refresh.
+setInterval(() => {
+  if (document.visibilityState === "visible") loadFixtures();
+}, 60000);
 
 </script>
 
