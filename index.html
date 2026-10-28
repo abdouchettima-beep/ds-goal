@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DS GOAL - Live Football Scores</title>
+<title>SAWA GOAL - Live Football Scores</title>
 
 <style>
 * {
@@ -367,19 +367,47 @@ body {
 }
 
 /* IN-APP MATCH EVENT ALERTS */
+.team { position: relative; }
 .goal-alert {
-  display: inline-block;
-  margin-left: 5px;
-  padding: 3px 5px;
-  border-radius: 5px;
+  position: absolute;
+  top: calc(50% + 11px);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 15px;
+  white-space: nowrap;
+}
+.goal-alert.confirmed {
+  padding: 2px 5px;
+  border: 1px solid rgba(255,255,255,.8);
+  border-radius: 4px;
   background: #e11d48;
   color: #fff;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 900;
-  white-space: nowrap;
-  vertical-align: middle;
+  line-height: 1.25;
+  box-shadow: 0 1px 3px rgba(15,23,42,.18);
   animation: goalPulse 1s ease-in-out infinite;
 }
+.goal-alert.pending {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(225,29,72,.12);
+  animation: soundWave 1s ease-out infinite;
+}
+.goal-dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e11d48;
+  box-shadow: 0 0 0 2px rgba(225,29,72,.22);
+  animation: redDotBlink .65s ease-in-out infinite;
+}
+.team.home .goal-alert { right: 0; }
+.team.away .goal-alert { left: 0; }
 .team.goal-scored .team-name {
   color: #b91c1c;
   font-weight: 900;
@@ -418,6 +446,17 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: .55; }
 }
+@keyframes redDotBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .25; transform: scale(.72); }
+}
+@keyframes soundWave {
+  0% { box-shadow: 0 0 0 0 rgba(225,29,72,.45); }
+  100% { box-shadow: 0 0 0 8px rgba(225,29,72,0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .goal-alert.pending, .goal-dot, .goal-alert.confirmed { animation: none; }
+}
 @keyframes goalGlow {
   0%, 100% { background: transparent; }
   50% { background: #fee2e2; }
@@ -451,8 +490,8 @@ body {
     <div class="menu">☰</div>
   </div>
 
-  <div class="logo">
-    DS <span class="logo-ball">⚽</span><span>OAL</span>
+  <div class="logo" aria-label="SAWA GOAL">
+    SAWA <span class="logo-ball">⚽</span><span>GOAL</span>
   </div>
 
   <div class="header-right">
@@ -585,6 +624,7 @@ let leagueCache = [];
 // Score baseline prevents a goal alert on first load.
 let previousScores = Object.create(null);
 let goalAlerts = Object.create(null);
+let pendingGoalAlerts = Object.create(null);
 let hasScoreBaseline = false;
 let isLoadingFixtures = false;
 let eventAlerts = Object.create(null);
@@ -735,8 +775,14 @@ async function loadFixtures() {
 
       if (hasScoreBaseline && previousScores[fixtureId]) {
         const old = previousScores[fixtureId];
-        if (homeScore > old.home) goalAlerts[fixtureId + "_home"] = now + 15000;
-        if (awayScore > old.away) goalAlerts[fixtureId + "_away"] = now + 15000;
+        if (homeScore > old.home) {
+          goalAlerts[fixtureId + "_home"] = now + 15000;
+          delete pendingGoalAlerts[fixtureId + "_home"];
+        }
+        if (awayScore > old.away) {
+          goalAlerts[fixtureId + "_away"] = now + 15000;
+          delete pendingGoalAlerts[fixtureId + "_away"];
+        }
       }
     });
 
@@ -746,6 +792,9 @@ async function loadFixtures() {
     // Expire temporary goal labels while keeping the updated score visible.
     Object.keys(goalAlerts).forEach(key => {
       if (goalAlerts[key] <= now) delete goalAlerts[key];
+    });
+    Object.keys(pendingGoalAlerts).forEach(key => {
+      if (pendingGoalAlerts[key].expiresAt <= now) delete pendingGoalAlerts[key];
     });
 
     allMatches = freshMatches;
@@ -843,11 +892,26 @@ async function refreshLiveEventAlerts(matches) {
         if (!seenEventKeys[signature]) {
           seenEventKeys[signature] = true;
           if (hasEventBaseline && classification) {
-            newAlerts[result.fixtureId] = {
-              ...classification,
-              expiresAt: pollTime + 20000,
-              minute: event?.time?.elapsed ? String(event.time.elapsed) + "'" : ""
-            };
+            if (classification.kind === "goal") {
+              const fixture = matches.find(match => String(match.fixture?.id || "") === result.fixtureId);
+              const scoringTeamId = String(event?.team?.id || "");
+              let side = "";
+              if (fixture && scoringTeamId && String(fixture.teams?.home?.id || "") === scoringTeamId) side = "home";
+              if (fixture && scoringTeamId && String(fixture.teams?.away?.id || "") === scoringTeamId) side = "away";
+              if (side) {
+                const goalKey = result.fixtureId + "_" + side;
+                // If the score has already changed, keep the confirmed GOAL label instead of reverting to a dot.
+                if (!(goalAlerts[goalKey] > pollTime)) {
+                  pendingGoalAlerts[goalKey] = { expiresAt: pollTime + 90000, minute: event?.time?.elapsed ? String(event.time.elapsed) + "'" : "" };
+                }
+              }
+            } else {
+              newAlerts[result.fixtureId] = {
+                ...classification,
+                expiresAt: pollTime + 20000,
+                minute: event?.time?.elapsed ? String(event.time.elapsed) + "'" : ""
+              };
+            }
           }
         }
       }
@@ -857,7 +921,7 @@ async function refreshLiveEventAlerts(matches) {
     Object.keys(eventAlerts).forEach(fixtureId => {
       if (eventAlerts[fixtureId].expiresAt <= pollTime) delete eventAlerts[fixtureId];
     });
-    if (Object.keys(newAlerts).length || Object.keys(eventAlerts).length) renderMatches();
+    if (Object.keys(newAlerts).length || Object.keys(eventAlerts).length || Object.keys(pendingGoalAlerts).length) renderMatches();
   } finally {
     isEventPollRunning = false;
   }
@@ -1263,10 +1327,12 @@ function createMatchElement(match) {
 
     <div class="team home ${goalAlerts[String(match.fixture?.id || "") + "_home"] > Date.now() ? "goal-scored" : ""}">
 
-      <span class="team-name">
-        ${escapeHtml(home?.name || "Home")}
-        ${goalAlerts[String(match.fixture?.id || "") + "_home"] > Date.now() ? '<span class="goal-alert">⚽ GOAL!</span>' : ""}
-      </span>
+      <span class="team-name">${escapeHtml(home?.name || "Home")}</span>
+      ${goalAlerts[String(match.fixture?.id || "") + "_home"] > Date.now()
+        ? '<span class="goal-alert confirmed">⚽ GOAL</span>'
+        : pendingGoalAlerts[String(match.fixture?.id || "") + "_home"]?.expiresAt > Date.now()
+          ? '<span class="goal-alert pending" aria-label="Goal detected, awaiting score confirmation"><span class="goal-dot"></span></span>'
+          : ""}
 
       ${
         home?.logo
@@ -1296,10 +1362,12 @@ function createMatchElement(match) {
         : ""
       }
 
-      <span class="team-name">
-        ${escapeHtml(away?.name || "Away")}
-        ${goalAlerts[String(match.fixture?.id || "") + "_away"] > Date.now() ? '<span class="goal-alert">⚽ GOAL!</span>' : ""}
-      </span>
+      <span class="team-name">${escapeHtml(away?.name || "Away")}</span>
+      ${goalAlerts[String(match.fixture?.id || "") + "_away"] > Date.now()
+        ? '<span class="goal-alert confirmed">⚽ GOAL</span>'
+        : pendingGoalAlerts[String(match.fixture?.id || "") + "_away"]?.expiresAt > Date.now()
+          ? '<span class="goal-alert pending" aria-label="Goal detected, awaiting score confirmation"><span class="goal-dot"></span></span>'
+          : ""}
 
     </div>
 
