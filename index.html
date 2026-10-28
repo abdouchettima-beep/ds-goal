@@ -366,6 +366,36 @@ body {
   object-fit: contain;
 }
 
+/* IN-APP GOAL ALERTS */
+.goal-alert {
+  display: inline-block;
+  margin-left: 5px;
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: #e11d48;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+  vertical-align: middle;
+  animation: goalPulse 1s ease-in-out infinite;
+}
+.team.goal-scored .team-name {
+  color: #b91c1c;
+  font-weight: 900;
+}
+.team.goal-scored {
+  animation: goalGlow 1s ease-in-out 3;
+}
+@keyframes goalPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .55; }
+}
+@keyframes goalGlow {
+  0%, 100% { background: transparent; }
+  50% { background: #fee2e2; }
+}
+
 /* DESKTOP */
 @media (min-width: 700px) {
   body {
@@ -521,6 +551,12 @@ let currentFilter = "all";
 
 let leagueCache = [];
 
+// Score baseline prevents a goal alert on first load.
+let previousScores = Object.create(null);
+let goalAlerts = Object.create(null);
+let hasScoreBaseline = false;
+let isLoadingFixtures = false;
+
 
 /* =========================
    NIGERIA DATE
@@ -620,65 +656,76 @@ function buildDateBar() {
 
 async function loadFixtures() {
 
-  const content =
-    document.getElementById("matchesContent");
+  // Prevent overlapping requests on slow phones or connections.
+  if (isLoadingFixtures) return;
+  isLoadingFixtures = true;
 
-  content.innerHTML = `
-    <div class="status-message">
-      Loading real fixtures...
-    </div>
-  `;
+  const content = document.getElementById("matchesContent");
+  const hadMatches = allMatches.length > 0;
+
+  // Only show a loader on the very first load. Refreshes never clear the screen.
+  if (!hadMatches && !content.dataset.initialLoading) {
+    content.dataset.initialLoading = "true";
+    content.innerHTML = `<div class="status-message">Loading real fixtures...</div>`;
+  }
 
   try {
-
     const requestUrl = currentFilter === "live"
       ? "https://football-livescore-backend.vercel.app/api/football"
       : API_BASE + "?date=" + encodeURIComponent(selectedDate);
 
-    const response = await fetch(requestUrl);
-
+    const response = await fetch(requestUrl, { cache: "no-store" });
     const data = await response.json();
 
     if (!response.ok) {
-
-      throw new Error(
-        data.message ||
-        data.error ||
-        "Football API request failed"
-      );
-
+      throw new Error(data.message || data.error || "Football API request failed");
+    }
+    if (!Array.isArray(data.response)) {
+      throw new Error("Unexpected API response");
     }
 
-    if (!data.response) {
+    const freshMatches = data.response;
+    const now = Date.now();
 
-      throw new Error(
-        "Unexpected API response"
-      );
+    // Detect newly increased scores once per fixture/team. Existing scores on
+    // first load are recorded quietly, so opening the app won't show false goals.
+    const freshScores = Object.create(null);
+    freshMatches.forEach(match => {
+      const fixtureId = String(match.fixture?.id || "");
+      if (!fixtureId) return;
+      const homeScore = Number(match.goals?.home ?? 0);
+      const awayScore = Number(match.goals?.away ?? 0);
+      freshScores[fixtureId] = { home: homeScore, away: awayScore };
 
-    }
+      if (hasScoreBaseline && previousScores[fixtureId]) {
+        const old = previousScores[fixtureId];
+        if (homeScore > old.home) goalAlerts[fixtureId + "_home"] = now + 15000;
+        if (awayScore > old.away) goalAlerts[fixtureId + "_away"] = now + 15000;
+      }
+    });
 
-    allMatches = data.response;
+    previousScores = freshScores;
+    hasScoreBaseline = true;
 
+    // Expire temporary goal labels while keeping the updated score visible.
+    Object.keys(goalAlerts).forEach(key => {
+      if (goalAlerts[key] <= now) delete goalAlerts[key];
+    });
+
+    allMatches = freshMatches;
     updateLeagueSelect();
-
     renderMatches();
 
   } catch (error) {
-
-    console.error(error);
-
-    content.innerHTML = `
-      <div class="error-message">
-        <strong>Unable to load fixtures.</strong>
-        <br><br>
-        ${escapeHtml(error.message)}
-      </div>
-    `;
-
+    console.error("DS GOAL fixture refresh failed:", error);
+    // Do not erase working results because a background refresh failed.
+    if (!hadMatches) {
+      content.innerHTML = `<div class="error-message"><strong>Unable to load fixtures.</strong><br><br>${escapeHtml(error.message)}</div>`;
+    }
+  } finally {
+    isLoadingFixtures = false;
   }
-
 }
-
 
 /* =========================
    FILTER BUTTONS
@@ -1074,10 +1121,11 @@ function createMatchElement(match) {
     </div>
 
 
-    <div class="team home">
+    <div class="team home ${goalAlerts[String(match.fixture?.id || "") + "_home"] > Date.now() ? "goal-scored" : ""}">
 
       <span class="team-name">
         ${escapeHtml(home?.name || "Home")}
+        ${goalAlerts[String(match.fixture?.id || "") + "_home"] > Date.now() ? '<span class="goal-alert">⚽ GOAL!</span>' : ""}
       </span>
 
       ${
@@ -1096,7 +1144,7 @@ function createMatchElement(match) {
     ${scoreHTML}
 
 
-    <div class="team away">
+    <div class="team away ${goalAlerts[String(match.fixture?.id || "") + "_away"] > Date.now() ? "goal-scored" : ""}">
 
       ${
         away?.logo
@@ -1110,6 +1158,7 @@ function createMatchElement(match) {
 
       <span class="team-name">
         ${escapeHtml(away?.name || "Away")}
+        ${goalAlerts[String(match.fixture?.id || "") + "_away"] > Date.now() ? '<span class="goal-alert">⚽ GOAL!</span>' : ""}
       </span>
 
     </div>
@@ -1462,7 +1511,7 @@ loadFixtures();
 // Keep scores current without requiring users to press refresh.
 setInterval(() => {
   if (document.visibilityState === "visible") loadFixtures();
-}, 60000);
+}, 30000);
 
 </script>
 
