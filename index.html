@@ -900,6 +900,9 @@ async function refreshLiveEventAlerts(matches) {
               if (fixture && scoringTeamId && String(fixture.teams?.away?.id || "") === scoringTeamId) side = "away";
               if (side) {
                 const goalKey = result.fixtureId + "_" + side;
+                const otherSideKey = result.fixtureId + (side === "home" ? "_away" : "_home");
+                // Show only one pending goal dot per match: the team attached to the latest detected goal event.
+                delete pendingGoalAlerts[otherSideKey];
                 // If the score has already changed, keep the confirmed GOAL label instead of reverting to a dot.
                 if (!(goalAlerts[goalKey] > pollTime)) {
                   pendingGoalAlerts[goalKey] = { expiresAt: pollTime + 90000, minute: event?.time?.elapsed ? String(event.time.elapsed) + "'" : "" };
