@@ -366,7 +366,7 @@ body {
   object-fit: contain;
 }
 
-/* IN-APP GOAL ALERTS */
+/* IN-APP MATCH EVENT ALERTS */
 .goal-alert {
   display: inline-block;
   margin-left: 5px;
@@ -387,6 +387,33 @@ body {
 .team.goal-scored {
   animation: goalGlow 1s ease-in-out 3;
 }
+.match.has-event-alert {
+  position: relative;
+  min-height: 91px;
+  padding-bottom: 27px;
+  background: #fff1f2;
+  animation: eventRowFlash 1s ease-in-out 4;
+}
+.match-event-alert {
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  bottom: 3px;
+  display: block;
+  text-align: center;
+  padding: 4px 6px;
+  border-radius: 5px;
+  color: #fff;
+  background: #be123c;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .3px;
+  line-height: 1.2;
+  animation: goalPulse 1s ease-in-out infinite;
+}
+.match-event-alert.var { background: #7c3aed; }
+.match-event-alert.penalty { background: #b45309; }
+.match-event-alert.red-card { background: #b91c1c; }
 @keyframes goalPulse {
   0%, 100% { opacity: 1; }
   50% { opacity: .55; }
@@ -394,6 +421,10 @@ body {
 @keyframes goalGlow {
   0%, 100% { background: transparent; }
   50% { background: #fee2e2; }
+}
+@keyframes eventRowFlash {
+  0%, 100% { background: #fff1f2; }
+  50% { background: #fecdd3; }
 }
 
 /* DESKTOP */
@@ -556,6 +587,11 @@ let previousScores = Object.create(null);
 let goalAlerts = Object.create(null);
 let hasScoreBaseline = false;
 let isLoadingFixtures = false;
+let eventAlerts = Object.create(null);
+let seenEventKeys = Object.create(null);
+let hasEventBaseline = false;
+let lastEventPollAt = 0;
+let isEventPollRunning = false;
 
 
 /* =========================
@@ -715,6 +751,8 @@ async function loadFixtures() {
     allMatches = freshMatches;
     updateLeagueSelect();
     renderMatches();
+    // Event polling is throttled and limited to live fixtures to reduce API usage.
+    refreshLiveEventAlerts(freshMatches);
 
   } catch (error) {
     console.error("DS GOAL fixture refresh failed:", error);
@@ -724,6 +762,104 @@ async function loadFixtures() {
     }
   } finally {
     isLoadingFixtures = false;
+  }
+}
+
+
+/* =========================
+   LIVE MATCH EVENT ALERTS
+========================= */
+
+function classifyMatchEvent(event) {
+  const type = String(event?.type || "").toLowerCase();
+  const detail = String(event?.detail || "").toLowerCase();
+  const comments = String(event?.comments || "").toLowerCase();
+  const text = detail + " " + comments;
+
+  if (type === "var" || text.includes("var") || text.includes("video assistant")) {
+    return { label: "📺 VAR CHECK", kind: "var" };
+  }
+  if (type === "card" && (text.includes("red") || text.includes("second yellow"))) {
+    return { label: "🟥 RED CARD!", kind: "red-card" };
+  }
+  if (text.includes("penalty") || text.includes("pen.") || text.includes("penalty awarded")) {
+    return { label: "⚠️ PENALTY!", kind: "penalty" };
+  }
+  if (type === "goal") {
+    return { label: "⚽ GOAL!", kind: "goal" };
+  }
+  return null;
+}
+
+function getEventSignature(fixtureId, event) {
+  return [
+    fixtureId,
+    event?.time?.elapsed ?? "",
+    event?.time?.extra ?? "",
+    event?.team?.id ?? event?.team?.name ?? "",
+    event?.player?.id ?? event?.player?.name ?? "",
+    event?.type ?? "",
+    event?.detail ?? "",
+    event?.comments ?? ""
+  ].join("|");
+}
+
+async function refreshLiveEventAlerts(matches) {
+  const now = Date.now();
+  if (isEventPollRunning || now - lastEventPollAt < 45000) return;
+  lastEventPollAt = now;
+  isEventPollRunning = true;
+
+  try {
+    const liveMatches = matches.filter(match => isLive(match) && match.fixture?.id).slice(0, 12);
+    const results = await Promise.all(liveMatches.map(async match => {
+      const fixtureId = String(match.fixture.id);
+      try {
+        const response = await fetch(
+          "https://football-livescore-backend.vercel.app/api/events?fixture=" + encodeURIComponent(fixtureId),
+          { cache: "no-store" }
+        );
+        if (!response.ok) return { fixtureId, events: [] };
+        const data = await response.json();
+        return { fixtureId, events: Array.isArray(data.response) ? data.response : [] };
+      } catch (error) {
+        console.warn("DS GOAL event refresh failed:", fixtureId, error);
+        return { fixtureId, events: [] };
+      }
+    }));
+
+    const newAlerts = Object.create(null);
+    const pollTime = Date.now();
+    for (const result of results) {
+      // Process in match timeline order so the newest relevant incident wins.
+      const events = result.events.slice().sort((a, b) => {
+        const ae = Number(a?.time?.elapsed || 0) * 100 + Number(a?.time?.extra || 0);
+        const be = Number(b?.time?.elapsed || 0) * 100 + Number(b?.time?.extra || 0);
+        return ae - be;
+      });
+      for (const event of events) {
+        const signature = getEventSignature(result.fixtureId, event);
+        const classification = classifyMatchEvent(event);
+        if (!seenEventKeys[signature]) {
+          seenEventKeys[signature] = true;
+          if (hasEventBaseline && classification) {
+            newAlerts[result.fixtureId] = {
+              ...classification,
+              expiresAt: pollTime + 20000,
+              minute: event?.time?.elapsed ? String(event.time.elapsed) + "'" : ""
+            };
+          }
+        }
+      }
+    }
+    hasEventBaseline = true;
+    Object.assign(eventAlerts, newAlerts);
+    Object.keys(eventAlerts).forEach(fixtureId => {
+      if (eventAlerts[fixtureId].expiresAt <= pollTime) delete eventAlerts[fixtureId];
+    });
+    if (Object.keys(newAlerts).length || Object.keys(eventAlerts).length) renderMatches();
+  } finally {
+    isEventPollRunning = false;
   }
 }
 
@@ -1022,7 +1158,11 @@ function createMatchElement(match) {
     document.createElement("div");
 
   row.className = "match";
-
+  const fixtureId = String(match.fixture?.id || "");
+  const activeEventAlert = eventAlerts[fixtureId];
+  if (activeEventAlert && activeEventAlert.expiresAt > Date.now()) {
+    row.classList.add("has-event-alert");
+  }
 
   const status =
     getMatchStatus(match);
@@ -1167,6 +1307,10 @@ function createMatchElement(match) {
     <div class="arrow">
       ›
     </div>
+
+    ${activeEventAlert && activeEventAlert.expiresAt > Date.now()
+      ? `<div class="match-event-alert ${escapeAttribute(activeEventAlert.kind)}">${escapeHtml(activeEventAlert.label)} ${escapeHtml(activeEventAlert.minute || "")}</div>`
+      : ""}
 
   `;
 
