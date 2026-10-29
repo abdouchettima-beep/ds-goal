@@ -430,10 +430,8 @@ body {
 }
 .match.has-event-alert {
   position: relative;
-  min-height: 91px;
-  padding-bottom: 27px;
-  background: #fff1f2;
-  animation: eventRowFlash 1s ease-in-out 4;
+  min-height: 64px;
+  padding-bottom: 8px;
 }
 .match-event-alert {
   position: absolute;
@@ -479,6 +477,16 @@ body {
   50% { background: #fecdd3; }
 }
 
+
+.detail-tabs { display:flex; gap:0; overflow-x:auto; position:sticky; top:0; z-index:4; margin:12px 0 4px; background:#fff; border-bottom:1px solid var(--line); scrollbar-width:none; }
+.detail-tabs::-webkit-scrollbar { display:none; }
+.detail-tab { flex:0 0 auto; border:0; border-bottom:3px solid transparent; padding:13px 15px 11px; background:transparent; color:#667085; font-size:13px; font-weight:750; cursor:pointer; }
+.detail-tab.active { color:#061b35; border-bottom-color:#f5c242; }
+.detail-tab-section[hidden] { display:none !important; }
+.detail-card h3 { font-size:14px; letter-spacing:.1px; }
+.detail-score-card { border-radius:4px; box-shadow:none; border:1px solid var(--line); }
+.detail-card { border-radius:4px; box-shadow:none; border:1px solid var(--line); }
+
 /* LIGHT DEFAULT + DARK MODE */
 :root { color-scheme: light; --app-bg:#eef2f5; --surface:#ffffff; --text:#111827; --muted:#667085; --line:#e7ebef; --soft:#f7f9fb; --navy:#061b35; --navy2:#082c52; --gold:#f5c242; }
 body { background:var(--app-bg); color:var(--text); }
@@ -493,10 +501,38 @@ body { background:var(--app-bg); color:var(--text); }
 .logo span { color:var(--gold); }
 .logo .logo-sawa { color:#FFFFFF; }
 .logo .logo-goal { color:var(--gold); }
-body.dark-mode { color-scheme:dark; --app-bg:#091321; --surface:#111e30; --text:#f3f6fb; --muted:#aab6c7; --line:#25354a; --soft:#0d1929; }
+body.dark-mode { color-scheme:dark; --app-bg:#000000; --surface:#111111; --text:#f5f5f5; --muted:#a3a3a3; --line:#292929; --soft:#080808; }
+/* True black dark mode */
+body.dark-mode, body.dark-mode .page, body.dark-mode .content,
+body.dark-mode .filters, body.dark-mode .league-select-wrap,
+body.dark-mode .date-bar { background:#000000; }
+body.dark-mode .header, body.dark-mode .bottom-nav, body.dark-mode .search-box { background:#050505; }
+
+body.dark-mode .match, body.dark-mode .detail-card, body.dark-mode .detail-score-card,
+body.dark-mode .league-block, body.dark-mode .league-list-item,
+body.dark-mode .filter-btn, body.dark-mode #leagueSelect { background:#111111; color:#f5f5f5; border-color:#292929; }
+body.dark-mode .match:active { background:#202020; }
+body.dark-mode .filter-btn.active, body.dark-mode .date-item.active, body.dark-mode .nav-item.active { background:#f5c242; color:#000000; }
+body.dark-mode .detail-tabs { background:#050505; border-color:#292929; }
+body.dark-mode .detail-tab { color:#b8b8b8; }
+body.dark-mode .detail-tab.active { color:#f5c242; border-bottom-color:#f5c242; }
+body.dark-mode .detail-score-card { box-shadow:0 1px 5px #ffffff08; }
+body.dark-mode .standings-table th { background:#181818; color:#f5f5f5; }
+body.dark-mode .standings-table td { border-color:#292929; }
+body.dark-mode .standings-table tr.highlight-team { background:#29220e; }
+body.dark-mode .match.has-event-alert { background:#35131d; }
 body.dark-mode .filters,body.dark-mode .league-select-wrap { background:var(--app-bg); }
 body.dark-mode .filter-btn,body.dark-mode #leagueSelect,body.dark-mode .league-block,body.dark-mode .league-list-item,body.dark-mode .detail-card,body.dark-mode .detail-score-card { background:var(--surface); color:var(--text); border-color:var(--line); }
-body.dark-mode .league-header { background:#172b45; }
+/* Light silver-grey card framing around league sections; preserve the dark league-name strip */
+body.dark-mode .league-block { border:2px solid #C4C8CC !important; border-radius:10px; box-shadow:0 0 0 1px rgba(196,200,204,.35); }
+body.dark-mode .league-header { background:#202020 !important; color:#f5f5f5 !important; border-bottom:1px solid #383838 !important; }
+body.dark-mode .league-header .league-name, body.dark-mode .league-header .league-country { color:#f5f5f5 !important; opacity:1 !important; }
+body.dark-mode .match { background:#D1D5D9 !important; color:#111111 !important; border-color:#B7BCC1 !important; }
+body.dark-mode .match .team-name, body.dark-mode .match .match-time, body.dark-mode .match .vs, body.dark-mode .match .score { color:#111111; }
+body.dark-mode .match .live-label, body.dark-mode .match .live-score { color:#c00000 !important; }
+body.dark-mode .match:active { background:#BFC4C9 !important; }
+body.dark-mode .league-header .league-name, body.dark-mode .league-header .league-country { color:#111111 !important; opacity:1 !important; }
+body.dark-mode .league-block + .league-block { border-top:1px solid #C4C8CC !important; }
 body.dark-mode .match.has-event-alert { background:#431b2a; }
 body.dark-mode .match-event-alert { color:#fff; }
 body.dark-mode .team.goal-scored .team-name { color:#ff8a9c; }
@@ -553,6 +589,330 @@ body.dark-mode .status-message,body.dark-mode .match-time,body.dark-mode .vs { c
 .form-w,.form-l,.form-d,.form-na { display:inline-flex; min-width:22px;justify-content:center;padding:3px 5px;border-radius:4px;color:white; }
 .form-w { background:#15803d; } .form-l { background:#b91c1c; } .form-d { background:#64748b; } .form-na { background:#94a3b8; }
 
+
+/* Dark mode: ash/silver separators between league names/tabs */
+body.dark-mode .league-tabs > *,
+body.dark-mode .league-nav > *,
+body.dark-mode .league-selector > *,
+body.dark-mode .league-select-tabs > *,
+body.dark-mode .league-filter-tabs > *,
+body.dark-mode .league-item,
+body.dark-mode .league-tab {
+  border-right: 1px solid #8a8a8a !important;
+}
+body.dark-mode .league-tabs,
+body.dark-mode .league-nav,
+body.dark-mode .league-select-tabs,
+body.dark-mode .league-filter-tabs,
+body.dark-mode .league-header {
+  border-color: #8a8a8a !important;
+}
+body.dark-mode .league-header::before,
+body.dark-mode .league-header::after {
+  border-color: #8a8a8a !important;
+}
+/* Latest requested dark-mode league header color */
+body.dark-mode .league-header {
+  background: #87CEEB !important;
+  color: #071a3d !important;
+  border-bottom: 1px solid #63b8df !important;
+}
+body.dark-mode .league-header .league-name,
+body.dark-mode .league-header .league-country {
+  color: #071a3d !important;
+  opacity: 1 !important;
+}
+
+/* SAWA GOAL: seamless homepage — leagues flow as one continuous page */
+.league-block {
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible;
+}
+.league-block + .league-block {
+  border-top: 0 !important;
+}
+.league-header {
+  background: #87CEEB !important;
+  color: #071a3d !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+.league-header .league-name,
+.league-header .league-country {
+  color: #071a3d !important;
+  opacity: 1 !important;
+}
+body.dark-mode .league-block {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+}
+body.dark-mode .league-header {
+  background: #87CEEB !important;
+  color: #071a3d !important;
+  border: 0 !important;
+}
+body.dark-mode .league-header .league-name,
+body.dark-mode .league-header .league-country {
+  color: #071a3d !important;
+}
+
+
+/* Light mode: replace remaining navy homepage strips with sky blue */
+body:not(.dark-mode) .header,
+body:not(.dark-mode) .date-bar,
+body:not(.dark-mode) .bottom-nav,
+body:not(.dark-mode) .search-box,
+body:not(.dark-mode) .page-title {
+  background: #87CEEB !important;
+  color: #071a3d !important;
+}
+body:not(.dark-mode) .header .logo,
+body:not(.dark-mode) .header .menu,
+body:not(.dark-mode) .header .icon-btn,
+body:not(.dark-mode) .date-bar,
+body:not(.dark-mode) .page-title,
+body:not(.dark-mode) .bottom-nav .nav-item {
+  color: #071a3d !important;
+}
+body:not(.dark-mode) .header .logo-ball {
+  color: #071a3d !important;
+}
+body:not(.dark-mode) .search-box input {
+  border: 1px solid #63b8df;
+}
+
+
+
+/* FINAL REQUEST: light mode uses navy blue instead of sky blue.
+   Keep dark-mode styling independent. */
+body:not(.dark-mode) .header,
+body:not(.dark-mode) .date-bar,
+body:not(.dark-mode) .bottom-nav,
+body:not(.dark-mode) .search-box,
+body:not(.dark-mode) .page-title,
+body:not(.dark-mode) .league-header {
+  background: #061b35 !important;
+  color: #ffffff !important;
+}
+body:not(.dark-mode) .header .logo,
+body:not(.dark-mode) .header .menu,
+body:not(.dark-mode) .header .icon-btn,
+body:not(.dark-mode) .date-bar,
+body:not(.dark-mode) .page-title,
+body:not(.dark-mode) .bottom-nav .nav-item,
+body:not(.dark-mode) .league-header .league-name,
+body:not(.dark-mode) .league-header .league-country {
+  color: #ffffff !important;
+}
+body:not(.dark-mode) .header .logo-ball {
+  color: #ffffff !important;
+}
+body:not(.dark-mode) .search-box input {
+  border-color: #243b59 !important;
+}
+/* Keep dark-mode league headers light black, not sky blue. */
+body.dark-mode .league-header {
+  background: #202020 !important;
+  color: #f5f5f5 !important;
+  border-bottom: 1px solid #383838 !important;
+}
+body.dark-mode .league-header .league-name,
+body.dark-mode .league-header .league-country {
+  color: #f5f5f5 !important;
+  opacity: 1 !important;
+}
+
+
+/* Latest request: dark-sky-blue strips in light mode; keep dark mode unchanged. */
+body:not(.dark-mode) .header,
+body:not(.dark-mode) .date-bar,
+body:not(.dark-mode) .bottom-nav,
+body:not(.dark-mode) .search-box,
+body:not(.dark-mode) .page-title,
+body:not(.dark-mode) .league-header {
+  background: #168acb !important;
+  color: #ffffff !important;
+}
+body:not(.dark-mode) .header .logo,
+body:not(.dark-mode) .header .menu,
+body:not(.dark-mode) .header .icon-btn,
+body:not(.dark-mode) .date-bar,
+body:not(.dark-mode) .page-title,
+body:not(.dark-mode) .bottom-nav .nav-item,
+body:not(.dark-mode) .league-header .league-name,
+body:not(.dark-mode) .league-header .league-country,
+body:not(.dark-mode) .header .logo-ball {
+  color: #ffffff !important;
+}
+body:not(.dark-mode) .search-box input {
+  border-color: #0f70a8 !important;
+}
+
+
+/* Latest request: blue league headers in dark mode only */
+body.dark-mode .league-header {
+  background: #168acb !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #0f70a8 !important;
+}
+body.dark-mode .league-header .league-name,
+body.dark-mode .league-header .league-country {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+
+
+/* Latest request: soften the dark-mode match area (near-black charcoal). */
+body.dark-mode .content,
+body.dark-mode #matchesContent,
+body.dark-mode #favouritesContent,
+body.dark-mode .page,
+body.dark-mode .match {
+  background-color: #181818 !important;
+}
+body.dark-mode .match {
+  color: #f2f2f2 !important;
+  border-color: #303030 !important;
+}
+body.dark-mode .match .team-name,
+body.dark-mode .match .score,
+body.dark-mode .match .match-time {
+  color: #f2f2f2 !important;
+}
+
+
+/* User update: light-grey league headers in dark mode only. */
+body.dark-mode .league-header {
+  background: #d1d5db !important;
+  color: #111827 !important;
+  border-bottom: 1px solid #b8bec6 !important;
+}
+body.dark-mode .league-header .league-name,
+body.dark-mode .league-header .league-country {
+  color: #111827 !important;
+  opacity: 1 !important;
+}
+
+
+/* Latest layout refinement: edge-to-edge league headers, clearer match text, larger crests. */
+.league-header {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  gap: 8px !important;
+}
+.league-logo {
+  width: 28px !important;
+  height: 28px !important;
+  flex: 0 0 28px !important;
+}
+.league-name {
+  font-size: 15px !important;
+}
+.league-country {
+  font-size: 11px !important;
+}
+.match .team {
+  font-size: 13px !important;
+  gap: 5px !important;
+}
+.match .team-logo {
+  width: 29px !important;
+  height: 29px !important;
+}
+.match .score {
+  font-size: 16px !important;
+}
+.match .match-time,
+.match .live-label {
+  font-size: 12px !important;
+}
+@media (max-width: 380px) {
+  .match {
+    grid-template-columns: 43px minmax(0, 1fr) 49px minmax(0, 1fr) 22px !important;
+    gap: 2px !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+  }
+  .match .team { font-size: 11px !important; gap: 3px !important; }
+  .match .team-logo { width: 24px !important; height: 24px !important; }
+  .match .score { font-size: 14px !important; }
+}
+
+
+/* Final fix: league headers touch both edges of the match content and use bold text. */
+#matchesContent .league-block {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  box-sizing: border-box !important;
+}
+#matchesContent .league-header {
+  display: flex !important;
+  width: calc(100% + 0px) !important;
+  max-width: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  box-sizing: border-box !important;
+  font-weight: 700 !important;
+}
+#matchesContent .league-header *,
+#matchesContent .league-name,
+#matchesContent .league-country {
+  font-weight: 700 !important;
+}
+
+/* Readability update: larger team names and club crests. */
+#matchesContent .match .team,
+#matchesContent .match .team-name {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+}
+#matchesContent .match .team-logo {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  object-fit: contain !important;
+  flex-shrink: 0 !important;
+}
+#matchesContent .match .score { font-size: 17px !important; font-weight: 800 !important; }
+@media (max-width: 380px) {
+  #matchesContent .match .team,
+  #matchesContent .match .team-name { font-size: 12px !important; }
+  #matchesContent .match .team-logo {
+    width: 29px !important;
+    height: 29px !important;
+    min-width: 29px !important;
+    min-height: 29px !important;
+  }
+}
+
+/* Dark mode: dark-grey league headers */
+body.dark-mode .league-header {
+  background: #343a40 !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #4b5157 !important;
+}
+body.dark-mode .league-header .league-name,
+body.dark-mode .league-header .league-country,
+body.dark-mode .league-header * {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
 </style>
 </head>
 
@@ -570,7 +930,6 @@ body.dark-mode .status-message,body.dark-mode .match-time,body.dark-mode .vs { c
   </div>
 
   <div class="header-right">
-    <div class="icon-btn" onclick="toggleSearch()">⌕</div>
     <div class="icon-btn" onclick="toggleTheme()" id="themeButton" title="Switch theme">☾</div>
     <div class="icon-btn" onclick="loadFixtures()">↻</div>
   </div>
@@ -578,16 +937,6 @@ body.dark-mode .status-message,body.dark-mode .match-time,body.dark-mode .vs { c
 
 <div class="page-title">
   LIVE FOOTBALL SCORES
-</div>
-
-<!-- SEARCH -->
-<div class="search-box" id="searchBox">
-  <input
-    type="text"
-    id="searchInput"
-    placeholder="Search team or league..."
-    oninput="renderMatches()"
-  >
 </div>
 
 <!-- MATCHES PAGE -->
@@ -656,8 +1005,9 @@ body.dark-mode .status-message,body.dark-mode .match-time,body.dark-mode .vs { c
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <div class="nav-item active" onclick="showPage('matches', this)"><span class="nav-icon">⚽</span>Matches</div>
-  <div class="nav-item" onclick="showPage('favourites', this)"><span class="nav-icon">⭐</span>Favourites</div>
+  <div class="nav-item" onclick="showLiveMatches(this)"><span class="nav-icon">🔴</span>Live Matches</div>
   <div class="nav-item" onclick="showPage('leagues', this)"><span class="nav-icon">🏆</span>Leagues</div>
+  <div class="nav-item" onclick="showPage('favourites', this)"><span class="nav-icon">⭐</span>Favourites</div>
 </nav>
 
 <script>
@@ -1106,12 +1456,8 @@ function renderMatches() {
   const content =
     document.getElementById("matchesContent");
 
-  const search =
-    document
-      .getElementById("searchInput")
-      .value
-      .trim()
-      .toLowerCase();
+  // Search UI was removed; keep rendering independent of searchInput.
+  const search = "";
 
   const selectedLeague =
     document
@@ -1453,9 +1799,6 @@ function createMatchElement(match) {
 
     <button class="fav-star" aria-label="Save favourite" onclick="event.stopPropagation(); toggleFavourite('${fixtureId}')">${favourites[fixtureId] ? "★" : "☆"}</button>
 
-    ${activeEventAlert && activeEventAlert.expiresAt > Date.now()
-      ? `<div class="match-event-alert ${escapeAttribute(activeEventAlert.kind)}">${escapeHtml(activeEventAlert.label)} ${escapeHtml(activeEventAlert.minute || "")}</div>`
-      : ""}
 
   `;
 
@@ -1694,6 +2037,12 @@ function renderLeagueList() {
    PAGE NAVIGATION
 ========================= */
 
+function showLiveMatches(element) {
+  showPage('matches', element);
+  const liveButton = document.querySelector('.filter-btn[data-filter="live"]');
+  if (liveButton) liveButton.click();
+}
+
 function showPage(page, element) {
   currentPage = page;
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
@@ -1717,15 +2066,10 @@ function toggleSearch() {
       "searchBox"
     );
 
+  if (!box) return;
   box.classList.toggle("show");
-
-  if (box.classList.contains("show")) {
-
-    document
-      .getElementById("searchInput")
-      .focus();
-
-  }
+  const input = document.getElementById("searchInput");
+  if (box.classList.contains("show") && input) input.focus();
 
 }
 
@@ -1781,13 +2125,20 @@ async function openMatchDetails(id) {
   const score = match.goals?.home != null || match.goals?.away != null ? `${match.goals?.home ?? 0} - ${match.goals?.away ?? 0}` : "VS";
   const kickoff = fixture.timestamp ? new Intl.DateTimeFormat("en-NG", {timeZone:"Africa/Lagos",dateStyle:"medium",timeStyle:"short"}).format(new Date(fixture.timestamp*1000)) : "Time unavailable";
   el.innerHTML = `<div class="detail-score-card"><div class="detail-teams"><div class="detail-team">${home.logo?`<img src="${escapeAttribute(home.logo)}" onerror="this.style.display='none'">`:''}${escapeHtml(home.name||"Home")}</div><div class="detail-score">${escapeHtml(score)}</div><div class="detail-team">${away.logo?`<img src="${escapeAttribute(away.logo)}" onerror="this.style.display='none'">`:''}${escapeHtml(away.name||"Away")}</div></div><div class="detail-status">${escapeHtml(fixture.status?.long || fixture.status?.short || "Status unavailable")} ${fixture.status?.elapsed ? "· "+fixture.status.elapsed+"'" : ""}</div></div>
-  <section class="detail-card"><h3>Match Overview</h3>${detailRow("Competition", league.name||"Unavailable")}${detailRow("Country", league.country||"Unavailable")}${detailRow("Round", league.round||"Unavailable")}${detailRow("Kick-off", kickoff)}${detailRow("Venue", fixture.venue?.name||"Unavailable")}${detailRow("City", fixture.venue?.city||"Unavailable")}${detailRow("Referee", fixture.referee||"Unavailable")}${detailRow("Status", fixture.status?.long||"Unavailable")}</section>
-  <section class="detail-card"><h3>Match Events · Timeline</h3><div id="detailEvents" class="detail-loading">Loading events…</div></section>
-  <section class="detail-card"><h3>Head to Head · Last 5</h3><div id="detailH2H" class="detail-loading">Loading previous meetings…</div></section>
-  <section class="detail-card"><h3>Last 5 Matches · Team Form</h3><div id="detailForm" class="detail-loading">Loading recent matches…</div></section>
-  <section class="detail-card"><h3>League Table</h3><div id="detailStandings" class="detail-loading">Loading league table…</div></section>
-  <section class="detail-card"><h3>Team Statistics</h3><div id="detailStats" class="detail-loading">Loading statistics…</div></section>
-  <section class="detail-card"><h3>Lineups</h3><div id="detailLineups" class="detail-loading">Loading lineups…</div></section>`;
+  <div class="detail-tabs" role="tablist" aria-label="Match information">
+    <button class="detail-tab active" role="tab" aria-selected="true" onclick="switchMatchTab(this,'overview')">Overview</button>
+    <button class="detail-tab" role="tab" aria-selected="false" onclick="switchMatchTab(this,'stats')">Stats</button>
+    <button class="detail-tab" role="tab" aria-selected="false" onclick="switchMatchTab(this,'lineups')">Lineups</button>
+    <button class="detail-tab" role="tab" aria-selected="false" onclick="switchMatchTab(this,'h2h')">H2H</button>
+    <button class="detail-tab" role="tab" aria-selected="false" onclick="switchMatchTab(this,'standings')">Table</button>
+  </div>
+  <section class="detail-card detail-tab-section" data-tab-section="overview"><h3>Match Overview</h3>${detailRow("Competition", league.name||"Unavailable")}${detailRow("Country", league.country||"Unavailable")}${detailRow("Round", league.round||"Unavailable")}${detailRow("Kick-off", kickoff)}${detailRow("Venue", fixture.venue?.name||"Unavailable")}${detailRow("City", fixture.venue?.city||"Unavailable")}${detailRow("Referee", fixture.referee||"Unavailable")}${detailRow("Status", fixture.status?.long||"Unavailable")}</section>
+  <section class="detail-card detail-tab-section" data-tab-section="overview"><h3>Match Events</h3><div id="detailEvents" class="detail-loading">Loading events…</div></section>
+  <section class="detail-card detail-tab-section" data-tab-section="h2h" hidden><h3>Head to Head · Last 5</h3><div id="detailH2H" class="detail-loading">Loading previous meetings…</div></section>
+  <section class="detail-card detail-tab-section" data-tab-section="h2h" hidden><h3>Last 5 Matches · Team Form</h3><div id="detailForm" class="detail-loading">Loading recent matches…</div></section>
+  <section class="detail-card detail-tab-section" data-tab-section="standings" hidden><h3>League Table</h3><div id="detailStandings" class="detail-loading">Loading league table…</div></section>
+  <section class="detail-card detail-tab-section" data-tab-section="stats" hidden><h3>Match Statistics</h3><div id="detailStats" class="detail-loading">Loading statistics…</div></section>
+  <section class="detail-card detail-tab-section" data-tab-section="lineups" hidden><h3>Lineups</h3><div id="detailLineups" class="detail-loading">Loading lineups…</div></section>`;
   const fixtureId = String(fixture.id || id);
   const base = "https://football-livescore-backend.vercel.app/api/";
   const homeId = String(home.id || ""), awayId = String(away.id || "");
@@ -1802,6 +2153,18 @@ async function openMatchDetails(id) {
     loadDetailSection("detailStandings", base+"standings?league="+encodeURIComponent(leagueId)+"&season="+encodeURIComponent(season), data => renderStandings(data.response||[], homeId, awayId))
   ]);
 }
+
+function switchMatchTab(button, tab) {
+  document.querySelectorAll(".detail-tab").forEach(item => {
+    const active = item === button;
+    item.classList.toggle("active", active);
+    item.setAttribute("aria-selected", active ? "true" : "false");
+  });
+  document.querySelectorAll(".detail-tab-section").forEach(section => {
+    section.hidden = section.dataset.tabSection !== tab;
+  });
+}
+
 function detailRow(label,value) { return `<div class="detail-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value||"Unavailable")}</strong></div>`; }
 async function loadDetailSection(id,url,render) {
   const el=document.getElementById(id); if(!el) return;
@@ -1905,3 +2268,36 @@ setInterval(() => {
 
 </body>
 </html>
+
+<style id="sawa-dark-gold-highlights">
+/* Darker gold highlight colour for selected controls and tabs. */
+:root { --gold: #B8860B !important; }
+.filter-btn.active,
+.date-item.active,
+.nav-item.active {
+  background: #B8860B !important;
+  color: #FFFFFF !important;
+  border-color: #B8860B !important;
+}
+.detail-tab.active {
+  color: #B8860B !important;
+  border-bottom-color: #B8860B !important;
+}
+.standings-table tr.highlight-team {
+  background: rgba(184, 134, 11, 0.22) !important;
+}
+body.dark-mode .filter-btn.active,
+body.dark-mode .date-item.active,
+body.dark-mode .nav-item.active {
+  background: #B8860B !important;
+  color: #FFFFFF !important;
+  border-color: #B8860B !important;
+}
+body.dark-mode .detail-tab.active {
+  color: #D4A72C !important;
+  border-bottom-color: #D4A72C !important;
+}
+body.dark-mode .standings-table tr.highlight-team {
+  background: #3A2B08 !important;
+}
+</style>
