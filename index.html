@@ -275,9 +275,15 @@ body {
 }
 
 .team-name {
+  font-weight: 800;
+  font-size: clamp(12px, 3.5vw, 15px);
+  line-height: 1.2;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1 1 auto;
 }
 
 .score {
@@ -728,29 +734,18 @@ body.dark-mode .league-header .league-country {
 }
 
 
-/* Latest request: dark-sky-blue strips in light mode; keep dark mode unchanged. */
+/* SAWA SOCCER: light-grey homepage header and footer strips in light mode. */
 body:not(.dark-mode) .header,
-body:not(.dark-mode) .date-bar,
-body:not(.dark-mode) .bottom-nav,
-body:not(.dark-mode) .search-box,
-body:not(.dark-mode) .page-title,
-body:not(.dark-mode) .league-header {
-  background: #168acb !important;
-  color: #ffffff !important;
+body:not(.dark-mode) .bottom-nav {
+  background: #e5e7eb !important;
+  color: #252a30 !important;
 }
 body:not(.dark-mode) .header .logo,
 body:not(.dark-mode) .header .menu,
 body:not(.dark-mode) .header .icon-btn,
-body:not(.dark-mode) .date-bar,
-body:not(.dark-mode) .page-title,
 body:not(.dark-mode) .bottom-nav .nav-item,
-body:not(.dark-mode) .league-header .league-name,
-body:not(.dark-mode) .league-header .league-country,
 body:not(.dark-mode) .header .logo-ball {
-  color: #ffffff !important;
-}
-body:not(.dark-mode) .search-box input {
-  border-color: #0f70a8 !important;
+  color: #252a30 !important;
 }
 
 
@@ -874,44 +869,16 @@ body.dark-mode .league-header .league-country {
   font-weight: 700 !important;
 }
 
-/* Readability update: larger team names and club crests. */
-#matchesContent .match .team,
-#matchesContent .match .team-name {
-  font-size: 15px !important;
-  font-weight: 700 !important;
-  line-height: 1.25 !important;
+/* Final user request: keep league headers visible, but remove horizontal sky-blue separator lines. */
+#matchesContent .league-header {
+  display: flex !important;
+  visibility: visible !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
 }
-#matchesContent .match .team-logo {
-  width: 36px !important;
-  height: 36px !important;
-  min-width: 36px !important;
-  min-height: 36px !important;
-  object-fit: contain !important;
-  flex-shrink: 0 !important;
-}
-#matchesContent .match .score { font-size: 17px !important; font-weight: 800 !important; }
-@media (max-width: 380px) {
-  #matchesContent .match .team,
-  #matchesContent .match .team-name { font-size: 12px !important; }
-  #matchesContent .match .team-logo {
-    width: 29px !important;
-    height: 29px !important;
-    min-width: 29px !important;
-    min-height: 29px !important;
-  }
-}
-
-/* Dark mode: dark-grey league headers */
-body.dark-mode .league-header {
-  background: #343a40 !important;
-  color: #ffffff !important;
-  border-bottom: 1px solid #4b5157 !important;
-}
-body.dark-mode .league-header .league-name,
-body.dark-mode .league-header .league-country,
-body.dark-mode .league-header * {
-  color: #ffffff !important;
-  opacity: 1 !important;
+#matchesContent .league-block {
+  border-top: none !important;
+  box-shadow: none !important;
 }
 </style>
 </head>
@@ -924,12 +891,13 @@ body.dark-mode .league-header * {
     <div class="menu">☰</div>
   </div>
 
-  <div class="logo" aria-label="SAWA GOAL">
-    <span class="logo-mark" aria-hidden="true">SG</span>
-    <span class="logo-sawa">SAWA</span><span class="logo-goal">GOAL</span>
+  <div class="logo" aria-label="SAWA SOCCER">
+    <span class="logo-mark" aria-hidden="true">SS</span>
+    <span class="logo-sawa">SAWA</span><span class="logo-goal">SOCCER</span>
   </div>
 
   <div class="header-right">
+    <div class="icon-btn" onclick="toggleSearch()">⌕</div>
     <div class="icon-btn" onclick="toggleTheme()" id="themeButton" title="Switch theme">☾</div>
     <div class="icon-btn" onclick="loadFixtures()">↻</div>
   </div>
@@ -937,6 +905,16 @@ body.dark-mode .league-header * {
 
 <div class="page-title">
   LIVE FOOTBALL SCORES
+</div>
+
+<!-- SEARCH -->
+<div class="search-box" id="searchBox">
+  <input
+    type="text"
+    id="searchInput"
+    placeholder="Search team or league..."
+    oninput="renderMatches()"
+  >
 </div>
 
 <!-- MATCHES PAGE -->
@@ -1005,9 +983,8 @@ body.dark-mode .league-header * {
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <div class="nav-item active" onclick="showPage('matches', this)"><span class="nav-icon">⚽</span>Matches</div>
-  <div class="nav-item" onclick="showLiveMatches(this)"><span class="nav-icon">🔴</span>Live Matches</div>
-  <div class="nav-item" onclick="showPage('leagues', this)"><span class="nav-icon">🏆</span>Leagues</div>
   <div class="nav-item" onclick="showPage('favourites', this)"><span class="nav-icon">⭐</span>Favourites</div>
+  <div class="nav-item" onclick="showPage('leagues', this)"><span class="nav-icon">🏆</span>Leagues</div>
 </nav>
 
 <script>
@@ -1456,8 +1433,12 @@ function renderMatches() {
   const content =
     document.getElementById("matchesContent");
 
-  // Search UI was removed; keep rendering independent of searchInput.
-  const search = "";
+  const search =
+    document
+      .getElementById("searchInput")
+      .value
+      .trim()
+      .toLowerCase();
 
   const selectedLeague =
     document
@@ -2037,12 +2018,6 @@ function renderLeagueList() {
    PAGE NAVIGATION
 ========================= */
 
-function showLiveMatches(element) {
-  showPage('matches', element);
-  const liveButton = document.querySelector('.filter-btn[data-filter="live"]');
-  if (liveButton) liveButton.click();
-}
-
 function showPage(page, element) {
   currentPage = page;
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
@@ -2066,10 +2041,15 @@ function toggleSearch() {
       "searchBox"
     );
 
-  if (!box) return;
   box.classList.toggle("show");
-  const input = document.getElementById("searchInput");
-  if (box.classList.contains("show") && input) input.focus();
+
+  if (box.classList.contains("show")) {
+
+    document
+      .getElementById("searchInput")
+      .focus();
+
+  }
 
 }
 
@@ -2269,35 +2249,62 @@ setInterval(() => {
 </body>
 </html>
 
-<style id="sawa-dark-gold-highlights">
-/* Darker gold highlight colour for selected controls and tabs. */
-:root { --gold: #B8860B !important; }
-.filter-btn.active,
-.date-item.active,
-.nav-item.active {
-  background: #B8860B !important;
-  color: #FFFFFF !important;
-  border-color: #B8860B !important;
+<style>
+/* SAWA SOCCER: dark-grey league headers, with no separator line */
+#matchesContent .league-header { background: #343a40 !important; color: #ffffff !important; border: none !important; border-bottom: none !important; box-shadow: none !important; }
+#matchesContent .league-header * { color: #ffffff !important; }
+#matchesContent .league-block { border-top: none !important; box-shadow: none !important; }
+</style>
+
+<style>
+/* SAWA SOCCER: light-grey league headers, no horizontal separator line */
+#matchesContent .league-header { background: #e5e7eb !important; color: #252a30 !important; border: none !important; border-bottom: none !important; box-shadow: none !important; }
+#matchesContent .league-header * { color: #252a30 !important; }
+#matchesContent .league-block { border-top: none !important; box-shadow: none !important; }
+body.dark-mode #matchesContent .league-header { background: #343a40 !important; color: #ffffff !important; }
+body.dark-mode #matchesContent .league-header * { color: #ffffff !important; }
+</style>
+
+
+<style>
+/* SAWA SOCCER: dark-grey top soccer icon and SS logo in light mode */
+@media (prefers-color-scheme: light) {
+  body:not(.dark-mode) .logo, body:not(.dark-mode) .brand-logo, body:not(.dark-mode) .app-logo, body:not(.dark-mode) .soccer-icon, body:not(.dark-mode) .logo i, body:not(.dark-mode) .brand-logo i, body:not(.dark-mode) .app-logo i { color: #3f3f3f !important; }
 }
-.detail-tab.active {
-  color: #B8860B !important;
-  border-bottom-color: #B8860B !important;
-}
-.standings-table tr.highlight-team {
-  background: rgba(184, 134, 11, 0.22) !important;
-}
-body.dark-mode .filter-btn.active,
-body.dark-mode .date-item.active,
-body.dark-mode .nav-item.active {
-  background: #B8860B !important;
-  color: #FFFFFF !important;
-  border-color: #B8860B !important;
-}
-body.dark-mode .detail-tab.active {
-  color: #D4A72C !important;
-  border-bottom-color: #D4A72C !important;
-}
-body.dark-mode .standings-table tr.highlight-team {
-  background: #3A2B08 !important;
+body:not(.dark-mode) .logo, body:not(.dark-mode) .brand-logo, body:not(.dark-mode) .app-logo, body:not(.dark-mode) .soccer-icon, body:not(.dark-mode) .logo i, body:not(.dark-mode) .brand-logo i, body:not(.dark-mode) .app-logo i { color: #3f3f3f !important; }
+body:not(.dark-mode) .logo-mark, body:not(.dark-mode) .ss-logo, body:not(.dark-mode) .brand-mark { background-color: #3f3f3f !important; color: #ffffff !important; border-color: #3f3f3f !important; }
+</style>
+
+<style>
+/* Light mode: make SAWA SOCCER wordmark clearly visible on light-grey header */
+body:not(.dark-mode) .logo .logo-sawa,
+body:not(.dark-mode) .logo .logo-goal,
+body:not(.dark-mode) .logo .logo-ball,
+body:not(.dark-mode) .logo span { color: #343a40 !important; }
+body:not(.dark-mode) .logo-mark { background-color: #343a40 !important; color: #ffffff !important; border-color: #343a40 !important; }
+/* Preserve the existing dark-mode wordmark colours */
+body.dark-mode .logo .logo-sawa { color: #ffffff !important; }
+body.dark-mode .logo .logo-goal, body.dark-mode .logo .logo-ball { color: var(--gold) !important; }
+body.dark-mode .logo-mark { background-color: transparent !important; color: var(--gold) !important; border-color: var(--gold) !important; }
+</style>
+
+<style id="sawa-team-name-fit-update">
+/* Stronger, responsive team names that fit the match card on small screens. */
+.match .team { min-width: 0; }
+.match .team-name { font-weight: 800 !important; font-size: clamp(11px, 3.4vw, 15px); min-width: 0; max-width: 100%; }
+.match .team-logo { flex: 0 0 25px; }
+@media (max-width: 360px) { .match .team-name { font-size: 11px; letter-spacing: -0.2px; } .match .team-logo { width: 21px; height: 21px; flex-basis: 21px; } }
+</style>
+
+<style>
+/* Improve live minute and LIVE label visibility in dark mode */
+body.dark-mode .match .live-label,
+body.dark-mode .match .live-minute,
+body.dark-mode .match .match-minute,
+body.dark-mode .match .elapsed,
+body.dark-mode .match .live-score {
+  color: #ff3030 !important;
+  font-weight: 800 !important;
+  text-shadow: 0 0 1px rgba(255, 48, 48, 0.35);
 }
 </style>
