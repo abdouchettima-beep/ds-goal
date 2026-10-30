@@ -592,7 +592,7 @@ body.dark-mode .status-message,body.dark-mode .match-time,body.dark-mode .vs { c
 .standings-table { min-width:570px; }
 .form-team { margin:8px 0 14px; }
 .form-team h4 { margin:8px 0; }
-.form-w,.form-l,.form-d,.form-na { display:inline-flex; min-width:22px;justify-content:center;padding:3px 5px;border-radius:4px;color:white; }
+.form-w,.form-l,.form-d,.form-na { display:inline-flex; width:28px;height:28px;min-width:28px;align-items:center;justify-content:center;padding:0;border-radius:5px;color:white;box-sizing:border-box;font-weight:800; }
 .form-w { background:#15803d; } .form-l { background:#b91c1c; } .form-d { background:#64748b; } .form-na { background:#94a3b8; }
 
 
@@ -890,6 +890,29 @@ body:not(.dark-mode) .header{background:#E5E7EB !important;color:#111827 !import
 body:not(.dark-mode) .header .icon-btn, body:not(.dark-mode) .header .theme-btn{color:#111827 !important;}
 @media(max-width:380px){.header .header-brand-logo{width:50px;height:50px;flex-basis:50px;padding:3px;}}
 
+
+/* SAWA SOCCER upgrade: accessible theme control, four-tab navigation and standings */
+.theme-toggle{display:flex;align-items:center;gap:6px;border:1px solid rgba(245,194,66,.7);border-radius:999px;background:#f5c242;color:#061b35;padding:8px 11px;font-weight:800;font-size:12px;min-height:40px;cursor:pointer;}
+.theme-toggle span{font-size:11px;}
+.bottom-nav{display:flex;justify-content:center;align-items:center;gap:clamp(18px,8vw,42px);padding:0 16px;}
+.bottom-nav .nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:58px;font-size:11px;padding:6px 2px;}
+.bottom-nav .nav-icon{font-size:19px;line-height:1.2;}
+.bottom-nav .nav-item[data-page="live"] .nav-icon{font-size:17px;}
+.form-team .event-row{display:grid;grid-template-columns:76px minmax(0,1fr) 28px;align-items:center;gap:7px;}
+.form-team .event-row span:nth-child(2){overflow-wrap:anywhere;}
+.standings-intro{color:var(--muted);font-size:13px;margin:0 0 12px;}
+.standings-choices{display:grid;grid-template-columns:1fr;gap:8px;}
+.standings-choice{width:100%;display:flex;align-items:center;gap:11px;text-align:left;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);cursor:pointer;min-height:64px;}
+.standings-choice img{width:34px;height:34px;object-fit:contain;flex:0 0 34px;}
+.standings-choice span:nth-child(2){flex:1;min-width:0;}
+.standings-choice b,.standings-choice small{display:block;}
+.standings-choice small{font-size:11px;color:var(--muted);margin-top:4px;}
+.standings-choice strong{font-size:22px;color:#b88b16;}
+.standings-choice-icon{font-size:27px;flex:0 0 34px;text-align:center;}
+.discover-card{display:flex;align-items:center;gap:12px;padding:15px;margin:10px 0;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);cursor:pointer;}
+.discover-card>span{font-size:25px;}.discover-card b,.discover-card small{display:block}.discover-card small{color:var(--muted);font-size:12px;margin-top:4px;}
+body.dark-mode .standings-choice,body.dark-mode .discover-card{background:#171717;color:#f5f5f5;border-color:#303030;}
+@media(min-width:560px){.standings-choices{grid-template-columns:repeat(2,minmax(0,1fr));}}
 </style>
 <style>
 
@@ -914,7 +937,7 @@ body:not(.dark-mode) .header .icon-btn, body:not(.dark-mode) .header .theme-btn{
 
   <div class="header-right">
     <div class="icon-btn" onclick="toggleSearch()">⌕</div>
-    <div class="icon-btn" onclick="toggleTheme()" id="themeButton" title="Switch theme">☾</div>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeButton" title="Switch light and dark mode" aria-label="Switch theme">☾ <span>Theme</span></button>
     <div class="icon-btn" onclick="loadFixtures()">↻</div>
   </div>
 </header>
@@ -998,9 +1021,9 @@ body:not(.dark-mode) .header .icon-btn, body:not(.dark-mode) .header .theme-btn{
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-  <div class="nav-item active" onclick="showPage('matches', this)"><span class="nav-icon">⚽</span>Matches</div>
-  <div class="nav-item" onclick="showPage('favourites', this)"><span class="nav-icon">⭐</span>Favourites</div>
-  <div class="nav-item" onclick="showPage('leagues', this)"><span class="nav-icon">🏆</span>Leagues</div>
+  <div class="nav-item active" data-page="matches" onclick="showPage('matches', this)"><span class="nav-icon">⚽</span><span>Matches</span></div>
+  <div class="nav-item" data-page="favourites" onclick="showPage('favourites', this)"><span class="nav-icon">⭐</span><span>Favourites</span></div>
+  <div class="nav-item" data-page="live" onclick="showPage('live', this)"><span class="nav-icon">🔴</span><span>Live</span></div>
 </nav>
 
 <script>
@@ -1031,6 +1054,7 @@ let currentPage = "matches";
 // Score baseline prevents a goal alert on first load.
 let previousScores = Object.create(null);
 let goalAlerts = Object.create(null);
+let goalAlertMinutes = Object.create(null);
 let pendingGoalAlerts = Object.create(null);
 let hasScoreBaseline = false;
 let isLoadingFixtures = false;
@@ -1170,30 +1194,17 @@ async function loadFixtures() {
     const freshMatches = data.response;
     const now = Date.now();
 
-    // Detect newly increased scores once per fixture/team. Existing scores on
-    // first load are recorded quietly, so opening the app won't show false goals.
+    // Keep score snapshots, but never infer the goal time from when polling
+    // noticed a score change. Goal alerts are driven by the API event timeline.
     const freshScores = Object.create(null);
     freshMatches.forEach(match => {
       const fixtureId = String(match.fixture?.id || "");
       if (!fixtureId) return;
-      const homeScore = Number(match.goals?.home ?? 0);
-      const awayScore = Number(match.goals?.away ?? 0);
-      freshScores[fixtureId] = { home: homeScore, away: awayScore };
-
-      if (hasScoreBaseline && previousScores[fixtureId]) {
-        const old = previousScores[fixtureId];
-        if (homeScore > old.home) {
-          const homeKey = fixtureId + "_home", awayKey = fixtureId + "_away";
-          goalAlerts[homeKey] = now + 12000;
-          delete goalAlerts[awayKey]; delete pendingGoalAlerts[homeKey]; delete pendingGoalAlerts[awayKey];
-        } else if (awayScore > old.away) {
-          const homeKey = fixtureId + "_home", awayKey = fixtureId + "_away";
-          goalAlerts[awayKey] = now + 12000;
-          delete goalAlerts[homeKey]; delete pendingGoalAlerts[homeKey]; delete pendingGoalAlerts[awayKey];
-        }
-      }
+      freshScores[fixtureId] = {
+        home: Number(match.goals?.home ?? 0),
+        away: Number(match.goals?.away ?? 0)
+      };
     });
-
     previousScores = freshScores;
     hasScoreBaseline = true;
 
@@ -1321,6 +1332,7 @@ async function refreshLiveEventAlerts(matches) {
                       delete pendingGoalAlerts[goalKey];
                       delete pendingGoalAlerts[otherSideKey];
                       goalAlerts[goalKey] = Date.now() + 12000;
+                      goalAlertMinutes[goalKey] = minute || "GOAL";
                       renderMatches();
                     }
                   }, 900);
@@ -1751,7 +1763,7 @@ function createMatchElement(match) {
 
       <span class="team-name">${escapeHtml(home?.name || "Home")}</span>
       ${goalAlerts[String(match.fixture?.id || "") + "_home"] > Date.now()
-        ? '<span class="goal-alert confirmed">⚽ GOAL</span>'
+        ? `<span class="goal-alert confirmed">⚽ ${escapeHtml(goalAlertMinutes[String(match.fixture?.id || "") + "_home"] || "GOAL")}</span>`
         : pendingGoalAlerts[String(match.fixture?.id || "") + "_home"]?.expiresAt > Date.now()
           ? '<span class="goal-alert pending" aria-label="Goal detected, awaiting score confirmation"><span class="goal-dot"></span></span>'
           : ""}
@@ -1786,7 +1798,7 @@ function createMatchElement(match) {
 
       <span class="team-name">${escapeHtml(away?.name || "Away")}</span>
       ${goalAlerts[String(match.fixture?.id || "") + "_away"] > Date.now()
-        ? '<span class="goal-alert confirmed">⚽ GOAL</span>'
+        ? `<span class="goal-alert confirmed">⚽ ${escapeHtml(goalAlertMinutes[String(match.fixture?.id || "") + "_away"] || "GOAL")}</span>`
         : pendingGoalAlerts[String(match.fixture?.id || "") + "_away"]?.expiresAt > Date.now()
           ? '<span class="goal-alert pending" aria-label="Goal detected, awaiting score confirmation"><span class="goal-dot"></span></span>'
           : ""}
@@ -2035,16 +2047,128 @@ function renderLeagueList() {
 ========================= */
 
 function showPage(page, element) {
+  if (page === "live") {
+    page = "matches";
+    currentFilter = "live";
+    localStorage.setItem("sawaGoalFilter", "live");
+    document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.filter === "live"));
+  }
   currentPage = page;
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
   const pageEl = document.getElementById(page + "Page");
   if (pageEl) pageEl.classList.add("active");
-  if (element) element.classList.add("active");
+  const navEl = element || document.querySelector('.nav-item[data-page="' + page + '"]');
+  if (navEl) navEl.classList.add("active");
   if (page === "leagues") loadLeagues();
   if (page === "favourites") renderFavourites();
 }
 
+// Reliable touch/click routing for the fixed bottom navigation.
+// This capture-phase handler also protects navigation if another element or
+// stale inline handler interferes with the tap on mobile browsers.
+document.addEventListener("click", function(event) {
+  const item = event.target.closest(".bottom-nav .nav-item[data-page]");
+  if (!item) return;
+  event.preventDefault();
+  const page = item.dataset.page;
+  if (!page) return;
+  showPage(page, item);
+}, true);
+
+/* =========================
+   STANDINGS PAGE
+========================= */
+let standingsChoicesLoaded = false;
+let standingsChoicesRequest = null;
+function normalizeLeagueList(payload) {
+  // Support the common API-Football response shape and simple backend wrappers.
+  const candidates = [
+    payload?.response,
+    payload?.data?.response,
+    payload?.data?.leagues,
+    payload?.leagues,
+    payload?.data,
+    payload
+  ];
+  const list = candidates.find(Array.isArray) || [];
+  return list.map(item => {
+    if (!item || typeof item !== "object") return null;
+    const league = item.league || item;
+    const seasons = item.seasons || league.seasons || [];
+    const country = item.country || league.country || {name:"International"};
+    if (league.id == null || !league.name) return null;
+    const seasonRows = Array.isArray(seasons) ? seasons : [];
+    const current = seasonRows.find(row => row && row.current && row.year);
+    const latest = seasonRows.map(row => Number(row?.year)).filter(Number.isFinite).sort((a,b)=>b-a)[0];
+    return {league, country, seasons:seasonRows, selectedSeason:current?.year || latest || new Date().getFullYear()};
+  }).filter(Boolean);
+}
+async function loadStandingsChoices(forceReload = false) {
+  const box = document.getElementById("standingsChoices");
+  const wrap = document.getElementById("standingsTableWrap");
+  if (!box || !wrap) return;
+  if (!forceReload && standingsChoicesLoaded && box.dataset.loaded === "yes") return;
+  if (standingsChoicesRequest && !forceReload) return standingsChoicesRequest;
+  box.hidden = false;
+  wrap.hidden = true;
+  box.innerHTML = '<div class="status-message">Loading competitions…</div>';
+  standingsChoicesRequest = (async () => {
+    try {
+      const res = await fetch("https://football-livescore-backend.vercel.app/api/leagues", {cache:"no-store"});
+      let data;
+      try { data = await res.json(); } catch (_) { throw new Error("The leagues service did not return valid JSON."); }
+      if (!res.ok || (data?.errors && (typeof data.errors === "string" ? data.errors : Object.keys(data.errors).length))) {
+        const details = typeof data?.errors === "string" ? data.errors : data?.message;
+        throw new Error(details || `Could not load competitions (HTTP ${res.status}).`);
+      }
+      const leagues = normalizeLeagueList(data);
+      if (!leagues.length) throw new Error("The leagues endpoint responded, but its JSON did not contain a readable list of competitions.");
+      box.innerHTML = leagues.map(x => {
+        const season = x.selectedSeason;
+        const name = x.league.name || "Competition";
+        const country = typeof x.country === "string" ? x.country : (x.country?.name || "International");
+        return `<button type="button" class="standings-choice" data-league-id="${escapeAttribute(x.league.id)}" data-league-name="${escapeAttribute(name)}" data-league-season="${escapeAttribute(season)}">${x.league.logo ? `<img src="${escapeAttribute(x.league.logo)}" alt="" onerror="this.style.visibility='hidden'">` : '<span class="standings-choice-icon">🏆</span>'}<span><b>${escapeHtml(name)}</b><small>${escapeHtml(country)} · Season ${escapeHtml(season)}</small></span><strong>›</strong></button>`;
+      }).join("");
+      box.querySelectorAll(".standings-choice").forEach(button => button.addEventListener("click", () => openLeagueStandings(button.dataset.leagueId, button.dataset.leagueName, button.dataset.leagueSeason)));
+      box.dataset.loaded = "yes";
+      standingsChoicesLoaded = true;
+    } catch (e) {
+      box.dataset.loaded = "no";
+      standingsChoicesLoaded = false;
+      box.innerHTML = `<div class="status-message">${escapeHtml(e.message || "Unable to load competitions.")}<br><button type="button" class="retry-btn" id="retryStandingsChoices">Try again</button></div>`;
+      document.getElementById("retryStandingsChoices")?.addEventListener("click", () => loadStandingsChoices(true));
+    } finally {
+      standingsChoicesRequest = null;
+    }
+  })();
+  return standingsChoicesRequest;
+}
+async function openLeagueStandings(id, name, season) {
+  const choices = document.getElementById("standingsChoices"), wrap = document.getElementById("standingsTableWrap"), out = document.getElementById("standingsPageTable");
+  if (!choices || !wrap || !out || !id || !season) return;
+  choices.hidden = true; wrap.hidden = false;
+  out.innerHTML = `<h3>${escapeHtml(name)} · ${escapeHtml(season)}</h3><div class="status-message">Loading real standings…</div>`;
+  try {
+    const url = `https://football-livescore-backend.vercel.app/api/standings?league=${encodeURIComponent(id)}&season=${encodeURIComponent(season)}`;
+    const res = await fetch(url, {cache:"no-store"});
+    let data;
+    try { data = await res.json(); } catch (_) { throw new Error("The standings service did not return valid JSON."); }
+    if (!res.ok || (data?.errors && (typeof data.errors === "string" ? data.errors : Object.keys(data.errors).length))) {
+      const details = typeof data?.errors === "string" ? data.errors : data?.message;
+      throw new Error(details || `Standings service returned an error (HTTP ${res.status}).`);
+    }
+    let response = data?.response;
+    if (!Array.isArray(response)) response = response?.response || response?.data || data?.data?.response || data?.standings || [];
+    if (!Array.isArray(response) && response && typeof response === "object") response = [response];
+    const html = renderStandings(response, "", "");
+    out.innerHTML = `<h3>${escapeHtml(name)} · ${escapeHtml(season)}</h3>${html}`;
+  } catch (e) {
+    out.innerHTML = `<h3>${escapeHtml(name)} · ${escapeHtml(season)}</h3><div class="status-message">${escapeHtml(e.message || "Could not load this table.")}<br><button type="button" class="retry-btn" id="retryOneStandings">Try again</button></div>`;
+    document.getElementById("retryOneStandings")?.addEventListener("click", () => openLeagueStandings(id, name, season));
+  }
+}
+function backToStandingsChoices() { document.getElementById("standingsTableWrap").hidden = true; document.getElementById("standingsChoices").hidden = false; }
 
 /* =========================
    SEARCH
@@ -2073,12 +2197,14 @@ function toggleSearch() {
 /* =========================
    THEME + FAVOURITES
 ========================= */
-function toggleTheme() {
-  document.body.classList.toggle("dark-mode");
-  const dark = document.body.classList.contains("dark-mode");
+function applyTheme(mode) {
+  const dark = mode === "dark";
+  document.body.classList.toggle("dark-mode", dark);
   localStorage.setItem("sawaGoalTheme", dark ? "dark" : "light");
-  document.getElementById("themeButton").textContent = dark ? "☀" : "☾";
+  const button = document.getElementById("themeButton");
+  if (button) { button.innerHTML = dark ? "☀ <span>Light</span>" : "☾ <span>Dark</span>"; button.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode"); }
 }
+function toggleTheme() { applyTheme(document.body.classList.contains("dark-mode") ? "light" : "dark"); }
 function loadFavourites() {
   try { return JSON.parse(localStorage.getItem("sawaGoalFavourites") || "{}"); } catch (_) { return {}; }
 }
@@ -2124,16 +2250,16 @@ async function openMatchDetails(id) {
   <div class="detail-tabs" role="tablist" aria-label="Match information">
     <button class="detail-tab active" role="tab" aria-selected="true" onclick="switchMatchTab(this,'overview')">Overview</button>
     <button class="detail-tab" role="tab" aria-selected="false" onclick="switchMatchTab(this,'stats')">Stats</button>
+    <button class="detail-tab" role="tab" aria-selected="false" onclick="switchMatchTab(this,'table')">Table</button>
     <button class="detail-tab" role="tab" aria-selected="false" onclick="switchMatchTab(this,'lineups')">Lineups</button>
     <button class="detail-tab" role="tab" aria-selected="false" onclick="switchMatchTab(this,'h2h')">H2H</button>
-    <button class="detail-tab" role="tab" aria-selected="false" onclick="switchMatchTab(this,'standings')">Table</button>
   </div>
   <section class="detail-card detail-tab-section" data-tab-section="overview"><h3>Match Overview</h3>${detailRow("Competition", league.name||"Unavailable")}${detailRow("Country", league.country||"Unavailable")}${detailRow("Round", league.round||"Unavailable")}${detailRow("Kick-off", kickoff)}${detailRow("Venue", fixture.venue?.name||"Unavailable")}${detailRow("City", fixture.venue?.city||"Unavailable")}${detailRow("Referee", fixture.referee||"Unavailable")}${detailRow("Status", fixture.status?.long||"Unavailable")}</section>
   <section class="detail-card detail-tab-section" data-tab-section="overview"><h3>Match Events</h3><div id="detailEvents" class="detail-loading">Loading events…</div></section>
   <section class="detail-card detail-tab-section" data-tab-section="h2h" hidden><h3>Head to Head · Last 5</h3><div id="detailH2H" class="detail-loading">Loading previous meetings…</div></section>
   <section class="detail-card detail-tab-section" data-tab-section="h2h" hidden><h3>Last 5 Matches · Team Form</h3><div id="detailForm" class="detail-loading">Loading recent matches…</div></section>
-  <section class="detail-card detail-tab-section" data-tab-section="standings" hidden><h3>League Table</h3><div id="detailStandings" class="detail-loading">Loading league table…</div></section>
   <section class="detail-card detail-tab-section" data-tab-section="stats" hidden><h3>Match Statistics</h3><div id="detailStats" class="detail-loading">Loading statistics…</div></section>
+  <section class="detail-card detail-tab-section" data-tab-section="table" hidden><h3>League Table</h3><div id="detailStandings" class="detail-loading">Loading league table…</div></section>
   <section class="detail-card detail-tab-section" data-tab-section="lineups" hidden><h3>Lineups</h3><div id="detailLineups" class="detail-loading">Loading lineups…</div></section>`;
   const fixtureId = String(fixture.id || id);
   const base = "https://football-livescore-backend.vercel.app/api/";
@@ -2143,10 +2269,10 @@ async function openMatchDetails(id) {
   await Promise.all([
     loadDetailSection("detailEvents", base+"events?fixture="+encodeURIComponent(fixtureId), data => renderEvents(data.response||[])),
     loadDetailSection("detailStats", base+"statistics?fixture="+encodeURIComponent(fixtureId), data => renderStatistics(data.response||[])),
+    loadDetailSection("detailStandings", base+"standings?league="+encodeURIComponent(leagueId)+"&season="+encodeURIComponent(season), data => renderStandings(data.response||data.data?.response||data.standings||[], homeId, awayId)),
     loadDetailSection("detailLineups", base+"lineups?fixture="+encodeURIComponent(fixtureId), data => renderLineups(data.response||[])),
     loadDetailSection("detailH2H", base+"headtohead?home="+encodeURIComponent(homeId)+"&away="+encodeURIComponent(awayId), data => renderRecentMatches(data.response||[], homeId, awayId, true)),
-    loadDetailSection("detailForm", base+"teamlast?home="+encodeURIComponent(homeId)+"&away="+encodeURIComponent(awayId)+"&season="+encodeURIComponent(season), data => renderTeamForms(data.home||[], data.away||[], home.name||"Home", away.name||"Away", homeId, awayId)),
-    loadDetailSection("detailStandings", base+"standings?league="+encodeURIComponent(leagueId)+"&season="+encodeURIComponent(season), data => renderStandings(data.response||[], homeId, awayId))
+    loadDetailSection("detailForm", base+"teamlast?home="+encodeURIComponent(homeId)+"&away="+encodeURIComponent(awayId)+"&season="+encodeURIComponent(season), data => renderTeamForms(data.home||[], data.away||[], home.name||"Home", away.name||"Away", homeId, awayId))
   ]);
 }
 
@@ -2250,7 +2376,7 @@ function escapeAttribute(value) {
    START APP
 ========================= */
 
-if (localStorage.getItem("sawaGoalTheme") === "dark") { document.body.classList.add("dark-mode"); document.getElementById("themeButton").textContent = "☀"; }
+applyTheme(localStorage.getItem("sawaGoalTheme") || "light");
 buildDateBar();
 document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.filter === currentFilter));
 loadFixtures();
@@ -2274,6 +2400,10 @@ setInterval(() => {
 .header .header-right .icon-btn { font-size:22px !important; }
 @media(max-width:380px) { .header { gap:6px !important; padding-left:8px !important; padding-right:8px !important; } .header .header-brand-logo { width:38px !important; height:38px !important; flex-basis:38px !important; padding:0 !important; background-color:#061B35 !important; } .header > .logo { font-size:15px !important; max-width:calc(100% - 132px) !important; } .header .header-right { gap:5px !important; } .header .header-right .icon-btn { font-size:20px !important; } }
 </style>
+<style id="sawa-bottom-standings-navigation-fix">
+.bottom-nav .nav-item { cursor:pointer; pointer-events:auto; touch-action:manipulation; }
+</style>
+
 </body>
 </html>
 
@@ -2339,4 +2469,9 @@ body.dark-mode .match .live-score {
 
 <style id="sawa-logo-circle-solid-navy-fix">
 .header img.header-brand-logo{background:#061B35 !important;background-color:#061B35 !important;background-image:none !important;border-radius:50% !important;box-sizing:border-box !important;padding:0 !important;object-fit:contain !important;border:2px solid #F5C242 !important;}
+</style>
+
+<style id="sawa-centered-bottom-menu-update">
+.bottom-nav { display:flex !important; justify-content:center !important; align-items:center !important; gap:clamp(24px, 9vw, 52px) !important; padding:0 18px !important; }
+.bottom-nav .nav-item { flex:0 0 auto !important; min-width:68px !important; text-align:center !important; }
 </style>
