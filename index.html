@@ -629,7 +629,7 @@ body.dark-mode .league-header .league-country {
   opacity: 1 !important;
 }
 
-/* SAWA GOAL: seamless homepage â€” leagues flow as one continuous page */
+/* SAWA GOAL: seamless homepage — leagues flow as one continuous page */
 .league-block {
   margin: 0 !important;
   border: 0 !important;
@@ -1013,9 +1013,9 @@ body.dark-mode .standings-choice,body.dark-mode .discover-card{background:#17171
   </div>
 
   <div class="header-right">
-    <div class="icon-btn" onclick="toggleSearch()">âŒ•</div>
-    <button class="theme-toggle" onclick="toggleTheme()" id="themeButton" title="Switch light and dark mode" aria-label="Switch theme">â˜¾ <span>Theme</span></button>
-    <div class="icon-btn" onclick="loadFixtures()">â†»</div>
+    <div class="icon-btn" onclick="toggleSearch()">⌕</div>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeButton" title="Switch light and dark mode" aria-label="Switch theme">☾ <span>Theme</span></button>
+    <div class="icon-btn" onclick="loadFixtures()">↻</div>
   </div>
 </header>
 
@@ -1046,22 +1046,22 @@ body.dark-mode .standings-choice,body.dark-mode .discover-card{background:#17171
     </button>
 
     <button class="filter-btn" data-filter="live">
-      ðŸ”´ Live
+      🔴 Live
     </button>
 
     <button class="filter-btn" data-filter="upcoming">
-      â—· Upcoming
+      ◷ Upcoming
     </button>
 
     <button class="filter-btn" data-filter="finished">
-      âš‘ Finished
+      ⚑ Finished
     </button>
   </div>
 
   <!-- LEAGUE SELECT -->
   <div class="league-select-wrap">
     <select id="leagueSelect" onchange="renderMatches()">
-      <option value="all">âš½ All Leagues</option>
+      <option value="all">⚽ All Leagues</option>
     </select>
   </div>
 
@@ -1089,18 +1089,18 @@ body.dark-mode .standings-choice,body.dark-mode .discover-card{background:#17171
 
 <!-- MATCH DETAILS PAGE -->
 <div id="detailsPage" class="page">
-  <div class="details-top"><button class="back-btn" onclick="closeMatchDetails()">â€¹ Back</button><button class="detail-fav" id="detailFavButton" onclick="toggleCurrentFavourite()">â˜† Favourite</button></div>
+  <div class="details-top"><button class="back-btn" onclick="closeMatchDetails()">‹ Back</button><button class="detail-fav" id="detailFavButton" onclick="toggleCurrentFavourite()">☆ Favourite</button></div>
   <main class="content" id="matchDetailsContent"><div class="status-message">Choose a match to view details.</div></main>
 </div>
 
 <!-- FAVOURITES PAGE -->
-<div id="favouritesPage" class="page"><div class="content"><h3 class="section-heading">â­ Favourite Matches</h3><main id="favouritesContent"><div class="status-message">Your saved matches will appear here.</div></main></div></div>
+<div id="favouritesPage" class="page"><div class="content"><h3 class="section-heading">⭐ Favourite Matches</h3><main id="favouritesContent"><div class="status-message">Your saved matches will appear here.</div></main></div></div>
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-  <div class="nav-item active" data-page="matches" onclick="showPage('matches', this)"><span class="nav-icon">âš½</span><span>Matches</span></div>
-  <div class="nav-item" data-page="favourites" onclick="showPage('favourites', this)"><span class="nav-icon">â­</span><span>Favourites</span></div>
-  <div class="nav-item" data-page="live" onclick="showPage('live', this)"><span class="nav-icon">ðŸ”´</span><span>Live</span></div>
+  <div class="nav-item active" data-page="matches" onclick="showPage('matches', this)"><span class="nav-icon">⚽</span><span>Matches</span></div>
+  <div class="nav-item" data-page="favourites" onclick="showPage('favourites', this)"><span class="nav-icon">⭐</span><span>Favourites</span></div>
+  <div class="nav-item" data-page="live" onclick="showPage('live', this)"><span class="nav-icon">🔴</span><span>Live</span></div>
 </nav>
 
 <script>
@@ -1322,16 +1322,16 @@ function classifyMatchEvent(event) {
   const text = detail + " " + comments;
 
   if (type === "var" || text.includes("var") || text.includes("video assistant")) {
-    return { label: "ðŸ“º VAR CHECK", kind: "var" };
+    return { label: "📺 VAR CHECK", kind: "var" };
   }
   if (type === "card" && (text.includes("red") || text.includes("second yellow"))) {
-    return { label: "ðŸŸ¥ RED CARD!", kind: "red-card" };
+    return { label: "🟥 RED CARD!", kind: "red-card" };
   }
   if (text.includes("penalty") || text.includes("pen.") || text.includes("penalty awarded")) {
-    return { label: "âš ï¸ PENALTY!", kind: "penalty" };
+    return { label: "⚠️ PENALTY!", kind: "penalty" };
   }
   if (type === "goal") {
-    return { label: "âš½ GOAL!", kind: "goal" };
+    return { label: "⚽ GOAL!", kind: "goal" };
   }
   return null;
 }
@@ -1840,7 +1840,7 @@ function createMatchElement(match) {
 
       <span class="team-name">${escapeHtml(home?.name || "Home")}</span>
       ${goalAlerts[String(match.fixture?.id || "") + "_home"] > Date.now()
-        ? `<span class="goal-alert confirmed">âš½ ${escapeHtml(goalAlertMinutes[String(match.fixture?.id || "") + "_home"] || "GOAL")}</span>`
+        ? `<span class="goal-alert confirmed">⚽ ${escapeHtml(goalAlertMinutes[String(match.fixture?.id || "") + "_home"] || "GOAL")}</span>`
         : pendingGoalAlerts[String(match.fixture?.id || "") + "_home"]?.expiresAt > Date.now()
           ? '<span class="goal-alert pending" aria-label="Goal detected, awaiting score confirmation"><span class="goal-dot"></span></span>'
           : ""}
@@ -1875,7 +1875,7 @@ function createMatchElement(match) {
 
       <span class="team-name">${escapeHtml(away?.name || "Away")}</span>
       ${goalAlerts[String(match.fixture?.id || "") + "_away"] > Date.now()
-        ? `<span class="goal-alert confirmed">âš½ ${escapeHtml(goalAlertMinutes[String(match.fixture?.id || "") + "_away"] || "GOAL")}</span>`
+        ? `<span class="goal-alert confirmed">⚽ ${escapeHtml(goalAlertMinutes[String(match.fixture?.id || "") + "_away"] || "GOAL")}</span>`
         : pendingGoalAlerts[String(match.fixture?.id || "") + "_away"]?.expiresAt > Date.now()
           ? '<span class="goal-alert pending" aria-label="Goal detected, awaiting score confirmation"><span class="goal-dot"></span></span>'
           : ""}
@@ -1883,7 +1883,7 @@ function createMatchElement(match) {
     </div>
 
 
-    <button class="fav-star" aria-label="Save favourite" onclick="event.stopPropagation(); toggleFavourite('${fixtureId}')">${favourites[fixtureId] ? "â˜…" : "â˜†"}</button>
+    <button class="fav-star" aria-label="Save favourite" onclick="event.stopPropagation(); toggleFavourite('${fixtureId}')">${favourites[fixtureId] ? "★" : "☆"}</button>
 
 
   `;
@@ -1937,7 +1937,7 @@ function updateLeagueSelect() {
 
   select.innerHTML = `
     <option value="all">
-      âš½ All Leagues
+      ⚽ All Leagues
     </option>
   `;
 
@@ -2216,7 +2216,7 @@ async function loadStandingsChoices(forceReload = false) {
   if (standingsChoicesRequest && !forceReload) return standingsChoicesRequest;
   box.hidden = false;
   wrap.hidden = true;
-  box.innerHTML = '<div class="status-message">Loading competitionsâ€¦</div>';
+  box.innerHTML = '<div class="status-message">Loading competitions…</div>';
   standingsChoicesRequest = (async () => {
     try {
       const res = await fetch("https://football-livescore-backend.vercel.app/api/leagues", {cache:"no-store"});
@@ -2232,7 +2232,7 @@ async function loadStandingsChoices(forceReload = false) {
         const season = x.selectedSeason;
         const name = x.league.name || "Competition";
         const country = typeof x.country === "string" ? x.country : (x.country?.name || "International");
-        return `<button type="button" class="standings-choice" data-league-id="${escapeAttribute(x.league.id)}" data-league-name="${escapeAttribute(name)}" data-league-season="${escapeAttribute(season)}">${x.league.logo ? `<img src="${escapeAttribute(x.league.logo)}" alt="" onerror="this.style.visibility='hidden'">` : '<span class="standings-choice-icon">ðŸ†</span>'}<span><b>${escapeHtml(name)}</b><small>${escapeHtml(country)} Â· Season ${escapeHtml(season)}</small></span><strong>â€º</strong></button>`;
+        return `<button type="button" class="standings-choice" data-league-id="${escapeAttribute(x.league.id)}" data-league-name="${escapeAttribute(name)}" data-league-season="${escapeAttribute(season)}">${x.league.logo ? `<img src="${escapeAttribute(x.league.logo)}" alt="" onerror="this.style.visibility='hidden'">` : '<span class="standings-choice-icon">🏆</span>'}<span><b>${escapeHtml(name)}</b><small>${escapeHtml(country)} · Season ${escapeHtml(season)}</small></span><strong>›</strong></button>`;
       }).join("");
       box.querySelectorAll(".standings-choice").forEach(button => button.addEventListener("click", () => openLeagueStandings(button.dataset.leagueId, button.dataset.leagueName, button.dataset.leagueSeason)));
       box.dataset.loaded = "yes";
@@ -2252,7 +2252,7 @@ async function openLeagueStandings(id, name, season) {
   const choices = document.getElementById("standingsChoices"), wrap = document.getElementById("standingsTableWrap"), out = document.getElementById("standingsPageTable");
   if (!choices || !wrap || !out || !id || !season) return;
   choices.hidden = true; wrap.hidden = false;
-  out.innerHTML = `<h3>${escapeHtml(name)} Â· ${escapeHtml(season)}</h3><div class="status-message">Loading real standingsâ€¦</div>`;
+  out.innerHTML = `<h3>${escapeHtml(name)} · ${escapeHtml(season)}</h3><div class="status-message">Loading real standings…</div>`;
   try {
     const url = `https://football-livescore-backend.vercel.app/api/standings?league=${encodeURIComponent(id)}&season=${encodeURIComponent(season)}`;
     const res = await fetch(url, {cache:"no-store"});
@@ -2266,9 +2266,9 @@ async function openLeagueStandings(id, name, season) {
     if (!Array.isArray(response)) response = response?.response || response?.data || data?.data?.response || data?.standings || [];
     if (!Array.isArray(response) && response && typeof response === "object") response = [response];
     const html = renderStandings(response, "", "");
-    out.innerHTML = `<h3>${escapeHtml(name)} Â· ${escapeHtml(season)}</h3>${html}`;
+    out.innerHTML = `<h3>${escapeHtml(name)} · ${escapeHtml(season)}</h3>${html}`;
   } catch (e) {
-    out.innerHTML = `<h3>${escapeHtml(name)} Â· ${escapeHtml(season)}</h3><div class="status-message">${escapeHtml(e.message || "Could not load this table.")}<br><button type="button" class="retry-btn" id="retryOneStandings">Try again</button></div>`;
+    out.innerHTML = `<h3>${escapeHtml(name)} · ${escapeHtml(season)}</h3><div class="status-message">${escapeHtml(e.message || "Could not load this table.")}<br><button type="button" class="retry-btn" id="retryOneStandings">Try again</button></div>`;
     document.getElementById("retryOneStandings")?.addEventListener("click", () => openLeagueStandings(id, name, season));
   }
 }
@@ -2306,7 +2306,7 @@ function applyTheme(mode) {
   document.body.classList.toggle("dark-mode", dark);
   localStorage.setItem("sawaGoalTheme", dark ? "dark" : "light");
   const button = document.getElementById("themeButton");
-  if (button) { button.innerHTML = dark ? "â˜€ <span>Light</span>" : "â˜¾ <span>Dark</span>"; button.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode"); }
+  if (button) { button.innerHTML = dark ? "☀ <span>Light</span>" : "☾ <span>Dark</span>"; button.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode"); }
 }
 function toggleTheme() { applyTheme(document.body.classList.contains("dark-mode") ? "light" : "dark"); }
 function loadFavourites() {
@@ -2325,14 +2325,14 @@ function renderFavourites() {
   const el = document.getElementById("favouritesContent");
   const items = Object.values(favourites);
   el.innerHTML = "";
-  if (!items.length) { el.innerHTML = '<div class="status-message">No favourite matches saved yet. Tap â˜† beside any match to save it.</div>'; return; }
+  if (!items.length) { el.innerHTML = '<div class="status-message">No favourite matches saved yet. Tap ☆ beside any match to save it.</div>'; return; }
   items.forEach(match => el.appendChild(createMatchElement(match)));
 }
 function toggleCurrentFavourite() { if (currentDetailMatch) toggleFavourite(String(currentDetailMatch.fixture?.id)); }
 function updateDetailFavouriteButton() {
   const id = String(currentDetailMatch?.fixture?.id || "");
   const b = document.getElementById("detailFavButton");
-  if (b) b.textContent = favourites[id] ? "â˜… Saved" : "â˜† Favourite";
+  if (b) b.textContent = favourites[id] ? "★ Saved" : "☆ Favourite";
 }
 function closeMatchDetails() {
   document.getElementById("detailsPage").classList.remove("active");
@@ -2350,7 +2350,7 @@ async function openMatchDetails(id) {
   const home = match.teams?.home || {}, away = match.teams?.away || {}, league = match.league || {}, fixture = match.fixture || {};
   const score = match.goals?.home != null || match.goals?.away != null ? `${match.goals?.home ?? 0} - ${match.goals?.away ?? 0}` : "VS";
   const kickoff = fixture.timestamp ? new Intl.DateTimeFormat("en-NG", {timeZone:"Africa/Lagos",dateStyle:"medium",timeStyle:"short"}).format(new Date(fixture.timestamp*1000)) : "Time unavailable";
-  el.innerHTML = `<div class="detail-score-card"><div class="detail-teams"><div class="detail-team">${home.logo?`<img src="${escapeAttribute(home.logo)}" onerror="this.style.display='none'">`:''}${escapeHtml(home.name||"Home")}</div><div class="detail-score">${escapeHtml(score)}</div><div class="detail-team">${away.logo?`<img src="${escapeAttribute(away.logo)}" onerror="this.style.display='none'">`:''}${escapeHtml(away.name||"Away")}</div></div><div class="detail-status">${escapeHtml(fixture.status?.long || fixture.status?.short || "Status unavailable")} ${fixture.status?.elapsed ? "Â· "+fixture.status.elapsed+"'" : ""}</div></div>
+  el.innerHTML = `<div class="detail-score-card"><div class="detail-teams"><div class="detail-team">${home.logo?`<img src="${escapeAttribute(home.logo)}" onerror="this.style.display='none'">`:''}${escapeHtml(home.name||"Home")}</div><div class="detail-score">${escapeHtml(score)}</div><div class="detail-team">${away.logo?`<img src="${escapeAttribute(away.logo)}" onerror="this.style.display='none'">`:''}${escapeHtml(away.name||"Away")}</div></div><div class="detail-status">${escapeHtml(fixture.status?.long || fixture.status?.short || "Status unavailable")} ${fixture.status?.elapsed ? "· "+fixture.status.elapsed+"'" : ""}</div></div>
   <div class="detail-tabs" role="tablist" aria-label="Match information">
     <button class="detail-tab active" role="tab" aria-selected="true" onclick="switchMatchTab(this,'overview')">Overview</button>
     <button class="detail-tab" role="tab" aria-selected="false" onclick="switchMatchTab(this,'stats')">Stats</button>
@@ -2359,12 +2359,12 @@ async function openMatchDetails(id) {
     <button class="detail-tab" role="tab" aria-selected="false" onclick="switchMatchTab(this,'h2h')">H2H</button>
   </div>
   <section class="detail-card detail-tab-section" data-tab-section="overview"><h3>Match Overview</h3>${detailRow("Competition", league.name||"Unavailable")}${detailRow("Country", league.country||"Unavailable")}${detailRow("Round", league.round||"Unavailable")}${detailRow("Kick-off", kickoff)}${detailRow("Venue", fixture.venue?.name||"Unavailable")}${detailRow("City", fixture.venue?.city||"Unavailable")}${detailRow("Referee", fixture.referee||"Unavailable")}${detailRow("Status", fixture.status?.long||"Unavailable")}</section>
-  <section class="detail-card detail-tab-section" data-tab-section="overview"><h3>Match Events</h3><div id="detailEvents" class="detail-loading">Loading eventsâ€¦</div></section>
-  <section class="detail-card detail-tab-section" data-tab-section="h2h" hidden><h3>Head to Head Â· Last 5</h3><div id="detailH2H" class="detail-loading">Loading previous meetingsâ€¦</div></section>
-  <section class="detail-card detail-tab-section" data-tab-section="h2h" hidden><h3>Last 5 Matches Â· Team Form</h3><div id="detailForm" class="detail-loading">Loading recent matchesâ€¦</div></section>
-  <section class="detail-card detail-tab-section" data-tab-section="stats" hidden><h3>Match Statistics</h3><div id="detailStats" class="detail-loading">Loading statisticsâ€¦</div></section>
-  <section class="detail-card detail-tab-section" data-tab-section="table" hidden><h3>League Table</h3><div id="detailStandings" class="detail-loading">Loading league tableâ€¦</div></section>
-  <section class="detail-card detail-tab-section" data-tab-section="lineups" hidden><h3>Lineups</h3><div id="detailLineups" class="detail-loading">Loading lineupsâ€¦</div></section>`;
+  <section class="detail-card detail-tab-section" data-tab-section="overview"><h3>Match Events</h3><div id="detailEvents" class="detail-loading">Loading events…</div></section>
+  <section class="detail-card detail-tab-section" data-tab-section="h2h" hidden><h3>Head to Head · Last 5</h3><div id="detailH2H" class="detail-loading">Loading previous meetings…</div></section>
+  <section class="detail-card detail-tab-section" data-tab-section="h2h" hidden><h3>Last 5 Matches · Team Form</h3><div id="detailForm" class="detail-loading">Loading recent matches…</div></section>
+  <section class="detail-card detail-tab-section" data-tab-section="stats" hidden><h3>Match Statistics</h3><div id="detailStats" class="detail-loading">Loading statistics…</div></section>
+  <section class="detail-card detail-tab-section" data-tab-section="table" hidden><h3>League Table</h3><div id="detailStandings" class="detail-loading">Loading league table…</div></section>
+  <section class="detail-card detail-tab-section" data-tab-section="lineups" hidden><h3>Lineups</h3><div id="detailLineups" class="detail-loading">Loading lineups…</div></section>`;
   const fixtureId = String(fixture.id || id);
   const base = "https://football-livescore-backend.vercel.app/api/";
   const homeId = String(home.id || ""), awayId = String(away.id || "");
@@ -2399,7 +2399,7 @@ async function loadDetailSection(id,url,render) {
 }
 function renderEvents(events) {
   if(!events.length) return '<div class="detail-loading">No match events available yet.</div>';
-  return events.map(e=>`<div class="event-row"><strong>${escapeHtml((e.time?.elapsed??"")+"'"+(e.time?.extra?" +"+e.time.extra: ""))}</strong><span>${escapeHtml(e.team?.name||"")}<br>${escapeHtml(e.player?.name||"")}</span><span>${escapeHtml(e.type||"")} Â· ${escapeHtml(e.detail||"")}${e.assist?.name?"<br>Assist: "+escapeHtml(e.assist.name):""}</span></div>`).join("");
+  return events.map(e=>`<div class="event-row"><strong>${escapeHtml((e.time?.elapsed??"")+"'"+(e.time?.extra?" +"+e.time.extra: ""))}</strong><span>${escapeHtml(e.team?.name||"")}<br>${escapeHtml(e.player?.name||"")}</span><span>${escapeHtml(e.type||"")} · ${escapeHtml(e.detail||"")}${e.assist?.name?"<br>Assist: "+escapeHtml(e.assist.name):""}</span></div>`).join("");
 }
 function renderStatistics(teams) {
   if(!teams.length || !teams.some(t => Array.isArray(t.statistics) && t.statistics.length)) return '<div class="detail-loading">The provider has not supplied statistics for this match yet.</div>';
@@ -2410,7 +2410,7 @@ function renderStatistics(teams) {
   b.forEach(x=>{if(!rows.some(r=>r.label===x.type))rows.push({label:x.type,left:null,right:x.value});});
   if(!rows.length) return '<div class="detail-loading">Statistics are not available yet.</div>';
   const numeric = v => { if(v===null||v===undefined||v==="")return null; if(typeof v==="number")return v; const m=String(v).replace(/%/g,"").match(/-?\d+(?:\.\d+)?/); return m?Number(m[0]):null; };
-  const fmt=v => v===null||v===undefined||v===""?"â€“":String(v);
+  const fmt=v => v===null||v===undefined||v===""?"–":String(v);
   return `<div class="fs-stats-head"><div class="fs-team-name home">${escapeHtml(names[0]||"Home")}</div><div class="fs-stats-title">MATCH STATISTICS</div><div class="fs-team-name away">${escapeHtml(names[1]||"Away")}</div></div>`+
   rows.map(r=>{const l=numeric(r.left), rr=numeric(r.right), total=(l!==null&&rr!==null)?Math.max(Math.abs(l)+Math.abs(rr),0):0; const lp=total?Math.abs(l)/total*100:(l!==null?100:0), rp=total?Math.abs(rr)/total*100:(rr!==null?100:0); return `<div class="fs-stat-row"><div class="fs-stat-values"><strong>${escapeHtml(fmt(r.left))}</strong><span>${escapeHtml(r.label)}</span><strong>${escapeHtml(fmt(r.right))}</strong></div><div class="fs-stat-bars"><span class="home-bar"><i style="width:${lp}%"></i></span><span class="away-bar"><i style="width:${rp}%"></i></span></div></div>`;}).join("");
 }
@@ -2467,22 +2467,22 @@ function renderLineups(teams) {
     const players=Array.isArray(team.startXI)?team.startXI.slice(0,11):[];
     return players.map(entry=>{
       const p=entry.player||{}, pos=getPosition(entry,team,reverse);
-      const shirt=p.number===0?0:(p.number||'â€“');
+      const shirt=p.number===0?0:(p.number||'–');
       const shortName=(p.name||'Player').split(' ').slice(-1)[0];
-      return `<div class="lineup-player ${teamClass}" style="left:${pos.x}%;top:${pos.y}%" title="${escapeAttribute(p.name||'Player')} Â· ${escapeAttribute(p.pos||'Position unavailable')}"><span class="player-name">${escapeHtml(shortName)}</span></div>`;
+      return `<div class="lineup-player ${teamClass}" style="left:${pos.x}%;top:${pos.y}%" title="${escapeAttribute(p.name||'Player')} · ${escapeAttribute(p.pos||'Position unavailable')}"><span class="player-name">${escapeHtml(shortName)}</span></div>`;
     }).join('');
   };
   const homeName=home.team?.name||'Home team', awayName=away.team?.name||'Away team';
   const teamCard=(team,side)=>{const name=team.team?.name||'Team',logo=team.team?.logo;const crest=logo?`<img src="${escapeAttribute(logo)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:'';return `<div class="lineup-team-card ${side}">${crest}<span class="crest-fallback" style="${logo?'display:none;':''}">${escapeHtml(name.slice(0,1).toUpperCase())}</span><div class="lineup-team-meta"><strong>${escapeHtml(name)}</strong><span>${escapeHtml(team.formation||'Formation unavailable')}</span></div></div>`;};
-  const extras=[home,away].map(t=>`<div class="lineup-extra-team"><h4>${escapeHtml(t.team?.name||'Team')} Â· ${escapeHtml(t.formation||'Formation unavailable from provider')}</h4><p><b>Coach:</b> ${escapeHtml(t.coach?.name||'Unavailable')}</p><p><b>Substitutes:</b> ${(t.substitutes||[]).map(p=>escapeHtml(p.player?.name||'')).filter(Boolean).join(', ')||'Unavailable'}</p></div>`).join('');
-  return `<div class="lineup-matchup">${teamCard(home,'home')}${teamCard(away,'away')}</div><div class="lineup-shared-pitch" aria-label="Both teams on one football pitch"><div class="lineup-box top"></div><div class="lineup-six top"></div><div class="lineup-pitch-circle"></div><div class="lineup-center"></div><div class="lineup-box bottom"></div><div class="lineup-six bottom"></div><div class="lineup-team-label home">${escapeHtml(homeName)} Â· ${escapeHtml(home.formation||'')}</div><div class="lineup-team-label away">${escapeHtml(awayName)} Â· ${escapeHtml(away.formation||'')}</div>${renderPlayers(home,'home',false)}${renderPlayers(away,'away',true)}</div><div class="lineup-extras">${extras}</div>`;
+  const extras=[home,away].map(t=>`<div class="lineup-extra-team"><h4>${escapeHtml(t.team?.name||'Team')} · ${escapeHtml(t.formation||'Formation unavailable from provider')}</h4><p><b>Coach:</b> ${escapeHtml(t.coach?.name||'Unavailable')}</p><p><b>Substitutes:</b> ${(t.substitutes||[]).map(p=>escapeHtml(p.player?.name||'')).filter(Boolean).join(', ')||'Unavailable'}</p></div>`).join('');
+  return `<div class="lineup-matchup">${teamCard(home,'home')}${teamCard(away,'away')}</div><div class="lineup-shared-pitch" aria-label="Both teams on one football pitch"><div class="lineup-box top"></div><div class="lineup-six top"></div><div class="lineup-pitch-circle"></div><div class="lineup-center"></div><div class="lineup-box bottom"></div><div class="lineup-six bottom"></div><div class="lineup-team-label home">${escapeHtml(homeName)} · ${escapeHtml(home.formation||'')}</div><div class="lineup-team-label away">${escapeHtml(awayName)} · ${escapeHtml(away.formation||'')}</div>${renderPlayers(home,'home',false)}${renderPlayers(away,'away',true)}</div><div class="lineup-extras">${extras}</div>`;
 }
 
 function resultBadge(match, teamId) {
   const homeId = String(match.teams?.home?.id || "");
   const awayId = String(match.teams?.away?.id || "");
   const h = Number(match.goals?.home ?? 0), a = Number(match.goals?.away ?? 0);
-  if (match.fixture?.status?.short !== "FT" && match.fixture?.status?.short !== "AET" && match.fixture?.status?.short !== "PEN") return "â€“";
+  if (match.fixture?.status?.short !== "FT" && match.fixture?.status?.short !== "AET" && match.fixture?.status?.short !== "PEN") return "–";
   const score = homeId === teamId ? h - a : a - h;
   return score > 0 ? "W" : score < 0 ? "L" : "D";
 }
@@ -2490,13 +2490,13 @@ function renderRecentMatches(matches, homeId, awayId, h2h=false) {
   if (!matches.length) return '<div class="detail-loading">No previous meetings are available for this fixture.</div>';
   return matches.slice(0,5).map(m => {
     const date = m.fixture?.timestamp ? new Intl.DateTimeFormat("en-NG",{timeZone:"Africa/Lagos",day:"numeric",month:"short",year:"numeric"}).format(new Date(m.fixture.timestamp*1000)) : "Date unavailable";
-    const hs = m.goals?.home ?? "â€“", as = m.goals?.away ?? "â€“";
+    const hs = m.goals?.home ?? "–", as = m.goals?.away ?? "–";
     const comp = m.league?.name || "";
     return `<div class="event-row"><strong>${escapeHtml(date)}</strong><span>${escapeHtml(m.teams?.home?.name||"Home")}<br><b>${escapeHtml(hs)} - ${escapeHtml(as)}</b><br>${escapeHtml(m.teams?.away?.name||"Away")}</span><span>${escapeHtml(comp)}<br>${escapeHtml(m.fixture?.status?.short||"")}</span></div>`;
   }).join("");
 }
 function renderTeamForms(homeMatches, awayMatches, homeName, awayName, homeId, awayId) {
-  const one = (name, matches, teamId) => `<div class="form-team"><h4>${escapeHtml(name)}</h4>${matches.slice(0,5).map(m=>{const r=resultBadge(m,teamId);const cls=r==="W"?"form-w":r==="L"?"form-l":r==="D"?"form-d":"form-na";return `<div class="event-row"><span>${escapeHtml(m.fixture?.date ? m.fixture.date.slice(0,10) : "Recent")}</span><span>${escapeHtml(m.teams?.home?.name||"")} ${escapeHtml(m.goals?.home??"â€“")}-${escapeHtml(m.goals?.away??"â€“")} ${escapeHtml(m.teams?.away?.name||"")}</span><b class="${cls}">${r}</b></div>`}).join("")||'<div class="detail-loading">No recent matches available.</div>'}</div>`;
+  const one = (name, matches, teamId) => `<div class="form-team"><h4>${escapeHtml(name)}</h4>${matches.slice(0,5).map(m=>{const r=resultBadge(m,teamId);const cls=r==="W"?"form-w":r==="L"?"form-l":r==="D"?"form-d":"form-na";return `<div class="event-row"><span>${escapeHtml(m.fixture?.date ? m.fixture.date.slice(0,10) : "Recent")}</span><span>${escapeHtml(m.teams?.home?.name||"")} ${escapeHtml(m.goals?.home??"–")}-${escapeHtml(m.goals?.away??"–")} ${escapeHtml(m.teams?.away?.name||"")}</span><b class="${cls}">${r}</b></div>`}).join("")||'<div class="detail-loading">No recent matches available.</div>'}</div>`;
   return one(homeName,homeMatches,String(homeId||""))+one(awayName,awayMatches,String(awayId||""));
 }
 function renderStandings(response, homeTeamId, awayTeamId) {
@@ -2508,13 +2508,13 @@ function renderStandings(response, homeTeamId, awayTeamId) {
   const homeId = String(homeTeamId || ""), awayId = String(awayTeamId || "");
   const homeRow = standings.find(row => String(row.team?.id) === homeId);
   const awayRow = standings.find(row => String(row.team?.id) === awayId);
-  const positionNote = `<div class="standings-position-note">${homeRow ? `<span><b>${escapeHtml(homeRow.team?.name || "Home team")}</b>: position <strong>${escapeHtml(homeRow.rank ?? "â€“")}</strong></span>` : ""}${awayRow ? `<span><b>${escapeHtml(awayRow.team?.name || "Away team")}</b>: position <strong>${escapeHtml(awayRow.rank ?? "â€“")}</strong></span>` : ""}</div>`;
+  const positionNote = `<div class="standings-position-note">${homeRow ? `<span><b>${escapeHtml(homeRow.team?.name || "Home team")}</b>: position <strong>${escapeHtml(homeRow.rank ?? "–")}</strong></span>` : ""}${awayRow ? `<span><b>${escapeHtml(awayRow.team?.name || "Away team")}</b>: position <strong>${escapeHtml(awayRow.rank ?? "–")}</strong></span>` : ""}</div>`;
   const rows = standings.map(row => {
     const id = String(row.team?.id || "");
     const highlighted = (id === homeId || id === awayId) ? "highlight-team" : "";
-    return `<tr class="${highlighted}"><td>${escapeHtml(row.rank ?? "â€“")}</td><td class="standings-team-cell">${row.team?.logo ? `<img src="${escapeAttribute(row.team.logo)}" alt="" onerror="this.style.display='none'">` : ""}${escapeHtml(row.team?.name || "Team")}</td><td>${escapeHtml(row.all?.played ?? "â€“")}</td><td>${escapeHtml(row.all?.win ?? "â€“")}</td><td>${escapeHtml(row.all?.draw ?? "â€“")}</td><td>${escapeHtml(row.all?.lose ?? "â€“")}</td><td>${escapeHtml(row.all?.goals?.for ?? "â€“")}</td><td>${escapeHtml(row.all?.goals?.against ?? "â€“")}</td><td>${escapeHtml(row.goalsDiff ?? "â€“")}</td><td><b>${escapeHtml(row.points ?? "â€“")}</b></td></tr>`;
+    return `<tr class="${highlighted}"><td>${escapeHtml(row.rank ?? "–")}</td><td class="standings-team-cell">${row.team?.logo ? `<img src="${escapeAttribute(row.team.logo)}" alt="" onerror="this.style.display='none'">` : ""}${escapeHtml(row.team?.name || "Team")}</td><td>${escapeHtml(row.all?.played ?? "–")}</td><td>${escapeHtml(row.all?.win ?? "–")}</td><td>${escapeHtml(row.all?.draw ?? "–")}</td><td>${escapeHtml(row.all?.lose ?? "–")}</td><td>${escapeHtml(row.all?.goals?.for ?? "–")}</td><td>${escapeHtml(row.all?.goals?.against ?? "–")}</td><td>${escapeHtml(row.goalsDiff ?? "–")}</td><td><b>${escapeHtml(row.points ?? "–")}</b></td></tr>`;
   }).join("");
-  return `${positionNote}<div class="table-scroll"><table class="standings-table"><thead><tr><th>Pos</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>${rows}</tbody></table></div><div class="standings-key">P Played Â· W Won Â· D Drawn Â· L Lost Â· GF Goals for Â· GA Goals against Â· GD Goal difference Â· Pts Points</div>`;
+  return `${positionNote}<div class="table-scroll"><table class="standings-table"><thead><tr><th>Pos</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>${rows}</tbody></table></div><div class="standings-key">P Played · W Won · D Drawn · L Lost · GF Goals for · GA Goals against · GD Goal difference · Pts Points</div>`;
 }
 
 /* =========================
