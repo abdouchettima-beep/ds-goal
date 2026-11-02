@@ -86,6 +86,7 @@ body {
   color: white;
   display: flex;
   overflow-x: auto;
+  overflow-y: hidden;
   gap: 5px;
   padding: 10px 8px;
   scrollbar-width: none;
@@ -94,6 +95,10 @@ body {
 .date-bar::-webkit-scrollbar {
   display: none;
 }
+
+.date-picker-wrap{display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:105px;flex-shrink:0;padding:3px 6px;color:#fff;font-size:10px;font-weight:800}
+.date-picker-wrap input{width:118px;max-width:100%;padding:6px 4px;border:1px solid rgba(255,255,255,.35);border-radius:6px;background:#fff;color:#10243a;font:600 11px Arial,sans-serif}
+.date-item{border:0;background:transparent;color:inherit;font:inherit}
 
 .date-item {
   min-width: 78px;
@@ -115,6 +120,8 @@ body {
   opacity: .8;
 }
 
+.date-strip-scroll { display:flex; align-items:stretch; gap:5px; flex:0 0 auto; width:max-content; overflow:visible; }
+.date-calendar-button { position:relative; flex:0 0 78px; min-width:78px; margin-left:4px; border-left:1px solid rgba(255,255,255,.22); border-radius:0; background:#061b35; }
 .date-item.active {
   background: #36d46f;
   color: #062038;
@@ -1078,7 +1085,9 @@ const API_BASE =
    APP STATE
 ========================= */
 
-let selectedDate = localStorage.getItem("sawaGoalSelectedDate") || getNigeriaDate();
+// Always open on today's Nigeria date; date selection remains changeable during the session.
+let selectedDate = getNigeriaDate();
+localStorage.setItem("sawaGoalSelectedDate", selectedDate);
 
 let allMatches = [];
 
@@ -1118,84 +1127,98 @@ function getNigeriaDate(date = new Date()) {
 
 }
 
+// Country flags replace competition logos for a consistent competition identity.
+function countryFlagEmoji(countryName, countryCode) {
+  const code = String(countryCode || "").trim().toUpperCase();
+  if (/^[A-Z]{2}$/.test(code) && code !== "XK") return String.fromCodePoint(...[...code].map(ch => 127397 + ch.charCodeAt(0)));
+  const key = String(countryName || "").trim().toLowerCase();
+  const codes = {
+    "england":"GB","united kingdom":"GB","uk":"GB","spain":"ES","italy":"IT","germany":"DE","france":"FR",
+    "afghanistan":"AF","albania":"AL","algeria":"DZ","andorra":"AD","angola":"AO","argentina":"AR","armenia":"AM","australia":"AU","austria":"AT","azerbaijan":"AZ",
+    "bahrain":"BH","belarus":"BY","belgium":"BE","benin":"BJ","bolivia":"BO","bosnia and herzegovina":"BA","brazil":"BR","bulgaria":"BG","burkina faso":"BF","burundi":"BI",
+    "cameroon":"CM","canada":"CA","chile":"CL","china":"CN","colombia":"CO","congo":"CG","costa rica":"CR","croatia":"HR","cyprus":"CY","czech republic":"CZ","czechia":"CZ",
+    "denmark":"DK","ecuador":"EC","egypt":"EG","estonia":"EE","ethiopia":"ET","finland":"FI","georgia":"GE","ghana":"GH","greece":"GR","guinea":"GN","hungary":"HU",
+    "iceland":"IS","india":"IN","indonesia":"ID","iran":"IR","iraq":"IQ","ireland":"IE","israel":"IL","ivory coast":"CI","cote d'ivoire":"CI","japan":"JP","jordan":"JO",
+    "kazakhstan":"KZ","kenya":"KE","kuwait":"KW","latvia":"LV","lebanon":"LB","libya":"LY","lithuania":"LT","luxembourg":"LU","malaysia":"MY","mali":"ML",
+    "malta":"MT","mexico":"MX","morocco":"MA","mozambique":"MZ","netherlands":"NL","new zealand":"NZ","nigeria":"NG","north macedonia":"MK","norway":"NO",
+    "oman":"OM","pakistan":"PK","panama":"PA","paraguay":"PY","peru":"PE","poland":"PL","portugal":"PT","qatar":"QA","romania":"RO","russia":"RU","saudi arabia":"SA",
+    "scotland":"GB","senegal":"SN","serbia":"RS","singapore":"SG","slovakia":"SK","slovenia":"SI","south africa":"ZA","south korea":"KR","sweden":"SE","switzerland":"CH",
+    "syria":"SY","tunisia":"TN","turkey":"TR","ukraine":"UA","united arab emirates":"AE","united states":"US","usa":"US","uruguay":"UY","uzbekistan":"UZ","venezuela":"VE","vietnam":"VN","wales":"GB"
+  };
+  const resolved = codes[key];
+  if (resolved) return String.fromCodePoint(...[...resolved].map(ch => 127397 + ch.charCodeAt(0)));
+  return "🌍";
+}
+
 
 /* =========================
    DATE BAR
 ========================= */
 
 function buildDateBar() {
-
   const bar = document.getElementById("dateBar");
-
   bar.innerHTML = "";
+  const strip = document.createElement("div");
+  strip.className = "date-strip-scroll";
+  bar.appendChild(strip);
 
-  const today = new Date(
-    new Date().toLocaleString("en-US", {
-      timeZone: "Africa/Lagos"
-    })
-  );
-
-  for (let i = 0; i < 14; i++) {
-
-    const date = new Date(today);
-
-    date.setDate(today.getDate() + i);
-
+  // Keep the selected date (Today on first launch) in the centre of the date strip.
+  const selected = new Date(selectedDate + "T12:00:00");
+  for (let offset = -7; offset <= 7; offset++) {
+    const date = new Date(selected);
+    date.setDate(selected.getDate() + offset);
     const dateString = getNigeriaDate(date);
-
-    const dayName = new Intl.DateTimeFormat("en-US", {
-      timeZone: "Africa/Lagos",
-      weekday: "short"
-    }).format(date);
-
-    const dayNumber = new Intl.DateTimeFormat("en-US", {
-      timeZone: "Africa/Lagos",
-      day: "2-digit"
-    }).format(date);
-
-    const monthName = new Intl.DateTimeFormat("en-US", {
-      timeZone: "Africa/Lagos",
-      month: "short"
-    }).format(date);
-
-    const item = document.createElement("div");
-
-    item.className =
-      "date-item " +
-      (dateString === selectedDate ? "active" : "");
-
-    item.innerHTML = `
-      <div class="day">
-        ${i === 0 ? "TODAY" : dayName.toUpperCase()}
-      </div>
-
-      <div class="date">
-        ${dayNumber} ${monthName.toUpperCase()}
-      </div>
-    `;
-
-    item.onclick = function() {
-
+    const dayName = new Intl.DateTimeFormat("en-US", { timeZone: "Africa/Lagos", weekday: "short" }).format(date);
+    const dayNumber = new Intl.DateTimeFormat("en-US", { timeZone: "Africa/Lagos", day: "2-digit" }).format(date);
+    const monthName = new Intl.DateTimeFormat("en-US", { timeZone: "Africa/Lagos", month: "short" }).format(date);
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "date-item " + (dateString === selectedDate ? "active" : "");
+    item.innerHTML = `<div class="day">${dateString === getNigeriaDate() ? "TODAY" : dayName.toUpperCase()}</div><div class="date">${dayNumber} ${monthName.toUpperCase()}</div>`;
+    item.addEventListener("click", function () {
       selectedDate = dateString;
+      localStorage.setItem("sawaGoalSelectedDate", selectedDate);
       loadedFixturesDate = "";
       loadedFixturesSource = "";
-
-      document
-        .querySelectorAll(".date-item")
-        .forEach(x => x.classList.remove("active"));
-
-      item.classList.add("active");
-
+      buildDateBar();
       loadFixtures();
-
-    };
-
-    bar.appendChild(item);
-
+    });
+    strip.appendChild(item);
   }
 
-}
+  // Calendar shortcut is placed at the far end, not before the date strip.
+  const calendar = document.createElement("button");
+  calendar.type = "button";
+  calendar.className = "date-item date-calendar-button";
+  calendar.innerHTML = '<div class="day">📅</div><div class="date">CALENDAR</div>';
+  const picker = document.createElement("input");
+  picker.type = "date";
+  picker.id = "matchDatePicker";
+  picker.setAttribute("aria-label", "Choose match date");
+  picker.value = selectedDate;
+  picker.style.cssText = "position:absolute;width:1px;height:1px;opacity:0;pointer-events:none";
+  picker.addEventListener("change", function () {
+    if (!this.value) return;
+    selectedDate = this.value;
+    localStorage.setItem("sawaGoalSelectedDate", selectedDate);
+    loadedFixturesDate = "";
+    loadedFixturesSource = "";
+    buildDateBar();
+    loadFixtures();
+  });
+  calendar.addEventListener("click", () => picker.showPicker ? picker.showPicker() : picker.click());
+  calendar.appendChild(picker);
+  strip.appendChild(calendar);
 
+  // Centre the selected date in the visible strip on first render and after every change.
+  // Calendar sits after the final date and appears only when the user scrolls to the far right.
+  requestAnimationFrame(() => {
+    const activeDate = strip.querySelector(".date-item.active");
+    if (!activeDate) return;
+    const target = activeDate.offsetLeft - (bar.clientWidth - activeDate.offsetWidth) / 2;
+    bar.scrollTo({ left: Math.max(0, target), behavior: "auto" });
+  });
+}
 
 /* =========================
    LOAD FIXTURES
@@ -1663,9 +1686,6 @@ function renderMatches() {
       "league-block";
 
 
-    const logo =
-      first.league?.logo || "";
-
     const leagueName =
       first.league?.name ||
       "Unknown League";
@@ -1677,25 +1697,11 @@ function renderMatches() {
 
     leagueBlock.innerHTML = `
       <div class="league-header">
-
-        ${
-          logo
-          ? `<img
-              class="league-logo"
-              src="${escapeAttribute(logo)}"
-              onerror="this.style.display='none'"
-            >`
-          : ""
-        }
-
-        <div class="league-name">
-          ${escapeHtml(leagueName)}
+        <span class="league-country-flag" aria-label="${escapeAttribute(country || 'International')}">${countryFlagEmoji(country, first.league?.countryCode)}</span>
+        <div class="league-header-text">
+          <div class="league-country">${escapeHtml(country || "International")}</div>
+          <div class="league-name">${escapeHtml(leagueName)}</div>
         </div>
-
-        <div class="league-country">
-          ${escapeHtml(country)}
-        </div>
-
       </div>
     `;
 
@@ -1933,12 +1939,21 @@ function updateLeagueSelect() {
   });
 
 
+  const topFive = [
+    { id: 39, name: "Premier League", country: "England" },
+    { id: 140, name: "La Liga", country: "Spain" },
+    { id: 135, name: "Serie A", country: "Italy" },
+    { id: 78, name: "Bundesliga", country: "Germany" },
+    { id: 61, name: "Ligue 1", country: "France" }
+  ];
+  const priority = new Map(topFive.map((x, i) => [String(x.id), i]));
   Object.entries(leagues)
-    .sort((a,b) =>
-      a[1].name.localeCompare(
-        b[1].name
-      )
-    )
+    .sort((a,b) => {
+      const ap = priority.has(String(a[0])) ? priority.get(String(a[0])) : 99;
+      const bp = priority.has(String(b[0])) ? priority.get(String(b[0])) : 99;
+      if (ap !== bp) return ap - bp;
+      return (a[1].name + " " + a[1].country).localeCompare(b[1].name + " " + b[1].country);
+    })
     .forEach(([id, league]) => {
 
       const option =
@@ -1947,9 +1962,7 @@ function updateLeagueSelect() {
       option.value = id;
 
       option.textContent =
-        league.country
-        ? `${league.name} - ${league.country}`
-        : league.name;
+        `${countryFlagEmoji(league.country)}  ${league.name}${league.country ? " - " + league.country : ""}`;
 
       select.appendChild(option);
 
@@ -2083,25 +2096,11 @@ function renderLeagueList() {
 
     div.innerHTML = `
 
-      ${
-        league.logo
-        ? `<img
-            src="${escapeAttribute(league.logo)}"
-            onerror="this.style.display='none'"
-          >`
-        : ""
-      }
-
+      <span class="league-country-flag" aria-label="${escapeAttribute(country?.name || 'International')}">${countryFlagEmoji(country?.name, country?.code)}</span>
       <div>
-        <strong>
-          ${escapeHtml(league.name || "")}
-        </strong>
-
+        <strong>${escapeHtml(league.name || "")}</strong>
         <br>
-
-        <small>
-          ${escapeHtml(country?.name || "")}
-        </small>
+        <small>${escapeHtml(country?.name || "International")}</small>
       </div>
 
     `;
@@ -2604,4 +2603,15 @@ body.dark-mode .match .live-score {
   .bottom-nav .nav-item { font-size:10px !important; }
   .bottom-nav .nav-icon { font-size:16px !important; }
 }
+</style>
+
+<style id="sawa-country-flags-and-today-default">
+.league-header{display:flex!important;align-items:center!important;gap:13px!important;}
+.league-country-flag{display:inline-flex;align-items:center;justify-content:center;flex:0 0 42px;width:42px;height:30px;font-family:"Apple Color Emoji","Segoe UI Emoji",sans-serif;font-size:29px;line-height:1;overflow:hidden;}
+.league-header-text{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.league-header .league-country{font-size:12px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;}
+.league-header .league-name{font-size:17px;font-weight:800;}
+.league-list-item{display:flex;align-items:center;gap:13px;}
+.league-list-item .league-country-flag{flex-basis:42px;}
+@media(max-width:380px){.league-country-flag{flex-basis:36px;width:36px;font-size:26px;}.league-header .league-name{font-size:15px;}}
 </style>
